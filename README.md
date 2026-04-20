@@ -1,32 +1,29 @@
-# DERMALYSSE · Club de Socios (Prototipo)
+# DERMALYSSE · Club de Socias
 
-Sitio del club privado para socias de Dermalysse.
+Plataforma privada para socias de Dermalysse.
 
-## Características
+## Identidad visual actual
 
-- **Prototipo visual** con autenticación mock (localStorage)
-- Dark premium theme con acento amarillo-dorado
-- 11 vistas completas: Inicio · Biblioteca · Webinar · Material PDF · Noticias · Mi Perfil · Suscripción · Configuración · Descuento 20% · Canal · Notificaciones
-- Responsive (desktop + mobile drawer)
-- SPA de un solo archivo
+- **Fondo principal:** Crema `#FDFBD4`
+- **Detalles/acentos:** Beige `#E0CD95` y Beige oscuro `#D4BF6E`
+- **Texto:** Café oscuro `#2D2818`
+- **Tipografía:** Fraunces (serif bold moderna) + Jost (sans)
 
 ## Cómo probarlo localmente
 
-Abre `index.html` en el navegador. Para registrarte, usa cualquier correo y contraseña (mín. 4 caracteres). Los datos se guardan solo en tu navegador.
+1. Extrae el ZIP
+2. Abre `index.html` en tu navegador
+3. Ingresa con cualquier correo y contraseña de 4+ caracteres
 
-## Cómo desplegarlo en GitHub Pages
+## Estado del prototipo
 
-1. Sube el contenido de esta carpeta al repositorio (ej. `dermalysse-club`)
-2. Settings → Pages → Source: `main / root`
-3. Estará en `https://teccapitalweb.github.io/dermalysse-club/`
+- Arrays de contenido **vacíos** — listos para que agregues cursos, webinars, PDFs, noticias y notificaciones
+- Empty states elegantes en todas las secciones
+- Auth mock con persistencia local (sandbox-safe)
 
-## Siguiente fase
+## Despliegue en GitHub Pages
 
-Migrar a backend real (Supabase) para:
-- Autenticación real con Google / email+password
-- Base de datos de usuarios y suscripciones
-- Contenido editable desde el panel admin
-- Sesiones persistentes multi-dispositivo
+Sube el contenido a tu repositorio → Settings → Pages → Source: `main / root`
 
 ---
 
