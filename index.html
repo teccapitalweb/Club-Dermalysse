@@ -3595,6 +3595,8 @@
     body.dark-mode .lesson-item.current { background: var(--bg-elevated); }
     body.dark-mode .lesson-number { background: var(--bg-elevated); border-color: var(--border); }
     body.dark-mode .lesson-play-btn { border-color: var(--border); }
+    .lesson-item.locked { opacity: .5; cursor: default; }
+    .lesson-item.locked:hover { background: transparent; border-color: var(--border-soft); }
 
     /* Dark mode: webinar items */
     body.dark-mode .webinar-date { background: var(--bg-elevated); border-color: var(--border); }
@@ -4309,6 +4311,7 @@
                 <strong id="courseDetailInstructor">—</strong>
               </span>
             </div>
+            <div id="courseDetailActions" style="margin-top:1.25rem;display:flex;gap:.65rem;flex-wrap:wrap;"></div>
           </div>
         </div>
 
@@ -5018,22 +5021,34 @@
     const COURSES = _rawCourses.filter(c => c.status === 'published').map(c => {
       const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
       const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
+
+      // Cargar progreso guardado
+      const progressKey = 'dermalysse_progress_' + c.id;
+      let completedLessons = [];
+      try { completedLessons = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
+
+      const totalLessons = (c.lessons||[]).length;
+      const completedCount = completedLessons.length;
+      const progress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
       return {
         id: c.id,
         name: c.name,
         cat: (c.cat||'').toLowerCase().replace(/í/g,'i').replace(/é/g,'e'),
         duration: durText,
         level: c.level,
-        progress: 0,
-        description: c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.',
+        progress: progress,
+        description: c.desc || (c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.'),
         instructor: c.instructor || '',
         img: c.img || '',
+        temario: c.temario || '',
         lessons: (c.lessons||[]).map((l,i) => ({
           id: i+1,
           title: l.name,
           duration: l.dur || '',
-          completed: false,
-          current: i === 0,
+          completed: completedLessons.includes(i+1),
+          current: !completedLessons.includes(i+1) && (i === 0 || completedLessons.includes(i)),
+          locked: i > 0 && !completedLessons.includes(i),
           drive: l.drive || ''
         }))
       };
@@ -5534,6 +5549,19 @@
       document.getElementById('courseDetailLevel').textContent = course.level;
       document.getElementById('courseDetailInstructor').textContent = course.instructor || 'Dermalysse';
 
+      // Botones de acción (temario)
+      const actionsEl = document.getElementById('courseDetailActions');
+      let actionsHTML = '';
+      if (course.temario) {
+        const temarioUrl = course.temario;
+        const temarioId = driveFileId(temarioUrl);
+        const previewUrl = temarioId ? 'https://drive.google.com/file/d/' + temarioId + '/preview' : temarioUrl;
+        actionsHTML += `<a href="${previewUrl}" target="_blank" class="btn-secondary" style="display:inline-flex;align-items:center;gap:.4rem;text-decoration:none;font-size:.85rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg> Ver temario</a>`;
+      }
+      actionsHTML += `<span class="btn-secondary" style="display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;cursor:default;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/></svg> ${(course.lessons||[]).length} clases</span>`;
+      actionsEl.innerHTML = actionsHTML;
+
+      // Progreso
       document.getElementById('courseProgressFill').style.width = (course.progress || 0) + '%';
       document.getElementById('courseProgressPercent').textContent = (course.progress || 0) + '%';
 
@@ -5562,25 +5590,47 @@
         const classes = ['lesson-item'];
         if (lesson.completed) classes.push('completed');
         if (lesson.current) classes.push('current');
+        if (lesson.locked) classes.push('locked');
 
         const hasVideo = !!lesson.drive;
-        const playBtnStyle = hasVideo ? '' : 'style="opacity:.3;cursor:default;"';
-        const videoTag = hasVideo
-          ? '<span style="font-size:.68rem;color:var(--success);font-weight:600;margin-left:.5rem;">● Video</span>'
-          : '<span style="font-size:.68rem;color:var(--text-muted);font-weight:500;margin-left:.5rem;">Próximamente</span>';
+        const isLocked = !!lesson.locked;
+
+        let statusTag;
+        if (lesson.completed) {
+          statusTag = '<span style="font-size:.68rem;color:var(--success);font-weight:600;margin-left:.5rem;">✓ Completada</span>';
+        } else if (isLocked) {
+          statusTag = '<span style="font-size:.68rem;color:var(--text-muted);font-weight:500;margin-left:.5rem;">🔒 Bloqueada</span>';
+        } else if (hasVideo) {
+          statusTag = '<span style="font-size:.68rem;color:var(--success);font-weight:600;margin-left:.5rem;">● Video</span>';
+        } else {
+          statusTag = '<span style="font-size:.68rem;color:var(--text-muted);font-weight:500;margin-left:.5rem;">Próximamente</span>';
+        }
+
+        const playBtnStyle = (isLocked || !hasVideo) ? 'style="opacity:.25;cursor:default;"' : '';
+        const lockIcon = '<path d="M12 17v.01M12 13a2 2 0 1 0-2-2"/><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
+        const playIcon = '<polygon points="5 3 19 12 5 21 5 3"/>';
+
+        if (isLocked) {
+          return `
+          <div class="${classes.join(' ')}" onclick="showToast('Completa la clase anterior para desbloquear')" style="opacity:.5;">
+            <div class="lesson-number">${numberContent}</div>
+            <div class="lesson-info">
+              <div class="lesson-title">${lesson.title}${statusTag}</div>
+              <div class="lesson-duration"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${lesson.duration}</div>
+            </div>
+            <button class="lesson-play-btn" style="opacity:.3;cursor:default;"><svg viewBox="0 0 24 24" fill="currentColor">${lockIcon}</svg></button>
+          </div>`;
+        }
 
         return `
           <div class="${classes.join(' ')}" onclick="playLesson(${lesson.id || (idx + 1)})">
             <div class="lesson-number">${numberContent}</div>
             <div class="lesson-info">
-              <div class="lesson-title">${lesson.title}${videoTag}</div>
-              <div class="lesson-duration">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                ${lesson.duration}
-              </div>
+              <div class="lesson-title">${lesson.title}${statusTag}</div>
+              <div class="lesson-duration"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${lesson.duration}</div>
             </div>
             <button class="lesson-play-btn" ${playBtnStyle} onclick="event.stopPropagation(); playLesson(${lesson.id || (idx + 1)})">
-              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor">${playIcon}</svg>
             </button>
           </div>
         `;
@@ -5592,6 +5642,7 @@
       if (!course) return;
       const lesson = (course.lessons || []).find(l => l.id === lessonId);
       if (!lesson) return;
+      if (lesson.locked) { showToast('Completa la clase anterior para desbloquear'); return; }
 
       const player = document.getElementById('videoPlayer');
       const body = document.getElementById('videoPlayerBody');
@@ -5608,6 +5659,7 @@
         body.innerHTML = `<div class="video-player-no-video"><div><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin-bottom:.75rem;opacity:.5;"><polygon points="5 3 19 12 5 21 5 3"/></svg><br>Video no disponible aún.<br>El contenido será subido próximamente.</div></div>`;
       }
 
+      window._currentPlayingLessonId = lesson.id;
       player.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
@@ -5616,8 +5668,52 @@
       const player = document.getElementById('videoPlayer');
       const body = document.getElementById('videoPlayerBody');
       player.classList.remove('active');
-      body.innerHTML = ''; // Detener video
+      body.innerHTML = '';
       document.body.style.overflow = '';
+
+      // Marcar clase como completada
+      if (currentCourseId && window._currentPlayingLessonId) {
+        markLessonComplete(currentCourseId, window._currentPlayingLessonId);
+        window._currentPlayingLessonId = null;
+      }
+    }
+
+    function markLessonComplete(courseId, lessonId) {
+      const progressKey = 'dermalysse_progress_' + courseId;
+      let completed = [];
+      try { completed = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
+
+      if (!completed.includes(lessonId)) {
+        completed.push(lessonId);
+        localStorage.setItem(progressKey, JSON.stringify(completed));
+
+        // Actualizar el curso en memoria
+        const course = COURSES.find(c => c.id === courseId);
+        if (course) {
+          const total = course.lessons.length;
+          course.progress = Math.round((completed.length / total) * 100);
+
+          // Actualizar estados de las lecciones
+          course.lessons.forEach((l, i) => {
+            l.completed = completed.includes(l.id);
+            l.current = !l.completed && (i === 0 || completed.includes(i));
+            l.locked = i > 0 && !completed.includes(i);
+          });
+
+          // Re-renderizar
+          document.getElementById('courseProgressFill').style.width = course.progress + '%';
+          document.getElementById('courseProgressPercent').textContent = course.progress + '%';
+          renderLessons(course.lessons);
+
+          if (course.progress === 100) {
+            showToast('¡Felicidades! Curso completado 🎉');
+            try { launchConfetti(); } catch(e) {}
+            try { addGotas(100, 'Curso completado'); } catch(e) {}
+          } else {
+            showToast('Clase completada ✓ — Siguiente desbloqueada');
+          }
+        }
+      }
     }
 
     // Cerrar video con Escape
