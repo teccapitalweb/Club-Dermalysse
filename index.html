@@ -5168,12 +5168,18 @@
               if (seen[item.title]) return;
               seen[item.title] = true;
 
-              // Extraer imagen
-              var img = item.enclosure && item.enclosure.link ? item.enclosure.link : '';
+              // Extraer imagen (múltiples fuentes)
+              var img = '';
+              if (item.enclosure && item.enclosure.link) img = item.enclosure.link;
               if (!img && item.thumbnail) img = item.thumbnail;
-              if (!img && item.description) {
-                var imgMatch = item.description.match(/<img[^>]+src=["\']([^"\']+)/);
-                if (imgMatch) img = imgMatch[1];
+              var htmlSrc = item.content || item.description || '';
+              if (!img && htmlSrc) {
+                var im = htmlSrc.match(/<img[^>]+src=["']([^"']+)/);
+                if (im) img = im[1];
+              }
+              if (!img && htmlSrc) {
+                var um = htmlSrc.match(/https:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp|gif)/i);
+                if (um) img = um[0];
               }
 
               // Extraer fuente
@@ -5633,13 +5639,13 @@
         var imgHTML = '';
         if (n.img) {
           var imgSrc = n.isAdmin ? driveImageUrl(n.img) : n.img;
-          imgHTML = '<img src="' + imgSrc + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.background=\'linear-gradient(135deg,var(--crema-pale),var(--azul-ghost))\'" crossorigin="anonymous">';
+          imgHTML = '<img src="' + imgSrc + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.background=\'linear-gradient(135deg,var(--crema-pale),var(--azul-ghost))\'" referrerpolicy="no-referrer">';
         }
         var onclick = n.link ? 'onclick="window.open(\'' + n.link + '\',\'_blank\')"' : 'onclick="goTo(\'noticias\')"';
         return '<div class="news-inicio-card" ' + onclick + '>'
           + '<div class="news-inicio-img">' + imgHTML + '</div>'
           + '<div class="news-inicio-body">'
-          + '<div class="news-inicio-cat">' + n.cat + '</div>'
+          + '<div class="news-inicio-cat">' + (n.author || 'Dermalysse') + '</div>'
           + '<div class="news-inicio-title">' + n.title + '</div>'
           + '<div class="news-inicio-excerpt">' + (n.excerpt || '') + '</div>'
           + '<div class="news-inicio-footer"><span>' + (n.author || 'Dermalysse') + '</span><span>' + n.date + '</span></div>'
@@ -6055,14 +6061,14 @@
         var imgHTML = '';
         if (n.img) {
           var imgSrc = n.isAdmin ? driveImageUrl(n.img) : n.img;
-          imgHTML = '<img src="' + imgSrc + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'" crossorigin="anonymous">';
+          imgHTML = '<img src="' + imgSrc + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'" referrerpolicy="no-referrer">';
         }
         var onclick = n.link ? 'onclick="window.open(\'' + n.link + '\',\'_blank\')"' : 'onclick="showToast(\'' + n.title.substring(0,30) + '...\')"';
-        var badge = n.isAdmin ? '' : '<span style="font-size:.65rem;background:var(--azul-ghost);color:var(--azul-dark);padding:.15rem .45rem;border-radius:999px;font-weight:600;">Web</span>';
+        
         return '<article class="news-card" ' + onclick + '>'
           + '<div class="news-card-img">' + imgHTML + '</div>'
           + '<div class="news-card-body">'
-          + '<div class="news-card-cat">' + n.cat + ' ' + badge + '</div>'
+          + '<div class="news-card-cat">' + n.author + '</div>'
           + '<h3 class="news-card-title">' + n.title + '</h3>'
           + '<p class="news-card-excerpt">' + n.excerpt + '</p>'
           + '<div class="news-card-meta">' + n.date + ' · ' + n.author + '</div>'
