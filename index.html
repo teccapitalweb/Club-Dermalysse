@@ -1591,6 +1591,86 @@
     }
     .lesson-play-btn svg { width: 14px; height: 14px; margin-left: 2px; }
 
+    /* Video Player Overlay */
+    .video-player-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99998;
+      padding: 2rem;
+      animation: fadeIn .2s ease;
+    }
+    .video-player-overlay.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .video-player-card {
+      width: 100%;
+      max-width: 900px;
+      background: #000;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,.5);
+      animation: modalIn .25s ease;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+
+    .video-player-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .85rem 1.25rem;
+      background: rgba(255,255,255,.06);
+    }
+    .video-player-title {
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: .95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .video-player-close {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      color: rgba(255,255,255,.6);
+      background: rgba(255,255,255,.08);
+      cursor: pointer;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+    .video-player-close:hover { background: rgba(255,255,255,.2); color: #fff; }
+    .video-player-close svg { width: 16px; height: 16px; }
+
+    .video-player-iframe {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border: none;
+      display: block;
+    }
+
+    .video-player-no-video {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,.4);
+      font-size: 1rem;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .video-player-overlay { padding: .5rem; }
+      .video-player-card { border-radius: var(--radius); }
+    }
+
     @media (max-width: 900px) {
       .course-detail-header { grid-template-columns: 1fr; }
       .course-detail-info { padding: 1.75rem; }
@@ -4872,6 +4952,19 @@
     </main>
   </div>
 
+  <!-- VIDEO PLAYER -->
+  <div class="video-player-overlay" id="videoPlayer" onclick="if(event.target===this)closeVideoPlayer()">
+    <div class="video-player-card">
+      <div class="video-player-header">
+        <div class="video-player-title" id="videoPlayerTitle">Clase</div>
+        <button class="video-player-close" onclick="closeVideoPlayer()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="videoPlayerBody"></div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -4892,6 +4985,33 @@
       members: 'dermalysse_sync_members'
     };
     function syncRead(key) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : null; } catch(e) { return null; } }
+
+    // ═══ GOOGLE DRIVE URL TRANSFORMERS ═══
+    function driveFileId(url) {
+      if (!url) return null;
+      // Extraer ID de diferentes formatos de URL de Drive
+      const patterns = [
+        /\/file\/d\/([a-zA-Z0-9_-]+)/,        // /file/d/ID/view
+        /id=([a-zA-Z0-9_-]+)/,                 // ?id=ID or open?id=ID
+        /\/folders\/([a-zA-Z0-9_-]+)/,          // /folders/ID
+        /^([a-zA-Z0-9_-]{20,})$/                // ID directo
+      ];
+      for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+      }
+      return null;
+    }
+
+    function driveImageUrl(url) {
+      const id = driveFileId(url);
+      return id ? 'https://drive.google.com/thumbnail?id=' + id + '&sz=w800' : '';
+    }
+
+    function driveVideoEmbed(url) {
+      const id = driveFileId(url);
+      return id ? 'https://drive.google.com/file/d/' + id + '/preview' : '';
+    }
 
     // Cursos: transformar formato Admin → Club
     const _rawCourses = syncRead(SYNC_KEYS.courses) || [];
@@ -5338,7 +5458,8 @@
     }
 
     function courseCard(c) {
-      const imgTag = `<img src="img/cursos/${c.id}.jpg" onerror="this.style.display='none'" alt="${c.name}">`;
+      const imgSrc = c.img ? driveImageUrl(c.img) : 'img/cursos/' + c.id + '.jpg';
+      const imgTag = `<img src="${imgSrc}" onerror="this.style.display='none'" alt="${c.name}">`;
       return `
         <article class="course-card" onclick="openCourse('${c.id}')">
           <div class="course-thumb">
@@ -5401,9 +5522,10 @@
       const course = COURSES.find(c => c.id === courseId);
       if (!course) return;
 
-      // Hero visual con imagen del curso
+      // Hero visual con imagen del curso (Drive o local)
       const visual = document.getElementById('courseDetailVisual');
-      visual.innerHTML = `<img src="img/cursos/${course.id}.jpg" onerror="this.style.display='none'" alt="${course.name}">`;
+      const imgSrc = course.img ? driveImageUrl(course.img) : 'img/cursos/' + course.id + '.jpg';
+      visual.innerHTML = `<img src="${imgSrc}" onerror="this.style.display='none'" alt="${course.name}">`;
 
       document.getElementById('courseDetailCat').textContent = course.cat;
       document.getElementById('courseDetailTitle').textContent = course.name;
@@ -5441,17 +5563,23 @@
         if (lesson.completed) classes.push('completed');
         if (lesson.current) classes.push('current');
 
+        const hasVideo = !!lesson.drive;
+        const playBtnStyle = hasVideo ? '' : 'style="opacity:.3;cursor:default;"';
+        const videoTag = hasVideo
+          ? '<span style="font-size:.68rem;color:var(--success);font-weight:600;margin-left:.5rem;">● Video</span>'
+          : '<span style="font-size:.68rem;color:var(--text-muted);font-weight:500;margin-left:.5rem;">Próximamente</span>';
+
         return `
           <div class="${classes.join(' ')}" onclick="playLesson(${lesson.id || (idx + 1)})">
             <div class="lesson-number">${numberContent}</div>
             <div class="lesson-info">
-              <div class="lesson-title">${lesson.title}</div>
+              <div class="lesson-title">${lesson.title}${videoTag}</div>
               <div class="lesson-duration">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 ${lesson.duration}
               </div>
             </div>
-            <button class="lesson-play-btn" onclick="event.stopPropagation(); playLesson(${lesson.id || (idx + 1)})">
+            <button class="lesson-play-btn" ${playBtnStyle} onclick="event.stopPropagation(); playLesson(${lesson.id || (idx + 1)})">
               <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
           </div>
@@ -5463,8 +5591,41 @@
       const course = COURSES.find(c => c.id === currentCourseId);
       if (!course) return;
       const lesson = (course.lessons || []).find(l => l.id === lessonId);
-      if (lesson) showToast('Reproduciendo: ' + lesson.title);
+      if (!lesson) return;
+
+      const player = document.getElementById('videoPlayer');
+      const body = document.getElementById('videoPlayerBody');
+      document.getElementById('videoPlayerTitle').textContent = lesson.title;
+
+      if (lesson.drive) {
+        const embedUrl = driveVideoEmbed(lesson.drive);
+        if (embedUrl) {
+          body.innerHTML = `<iframe class="video-player-iframe" src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        } else {
+          body.innerHTML = `<div class="video-player-no-video"><div><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin-bottom:.75rem;opacity:.5;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><br>El link de Drive no es válido.<br>Verifica el enlace en el panel de admin.</div></div>`;
+        }
+      } else {
+        body.innerHTML = `<div class="video-player-no-video"><div><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin-bottom:.75rem;opacity:.5;"><polygon points="5 3 19 12 5 21 5 3"/></svg><br>Video no disponible aún.<br>El contenido será subido próximamente.</div></div>`;
+      }
+
+      player.classList.add('active');
+      document.body.style.overflow = 'hidden';
     }
+
+    function closeVideoPlayer() {
+      const player = document.getElementById('videoPlayer');
+      const body = document.getElementById('videoPlayerBody');
+      player.classList.remove('active');
+      body.innerHTML = ''; // Detener video
+      document.body.style.overflow = '';
+    }
+
+    // Cerrar video con Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.getElementById('videoPlayer').classList.contains('active')) {
+        closeVideoPlayer();
+      }
+    });
 
     document.getElementById('courseFilters').addEventListener('click', e => {
       if (!e.target.classList.contains('filter-chip')) return;
