@@ -2009,6 +2009,38 @@
       object-fit: cover;
     }
 
+    /* News on inicio */
+    .news-inicio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.15rem;
+    }
+    .news-inicio-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: var(--shadow-xs);
+    }
+    .news-inicio-card:hover { border-color: var(--azul-pale); transform: translateY(-3px); box-shadow: var(--shadow); }
+    .news-inicio-img {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, var(--crema-pale), var(--azul-ghost));
+      overflow: hidden;
+    }
+    .news-inicio-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .news-inicio-body { padding: 1.15rem 1.25rem; }
+    .news-inicio-cat { font-size: .68rem; letter-spacing: .2em; text-transform: uppercase; color: var(--azul-dark); font-weight: 700; margin-bottom: .4rem; }
+    .news-inicio-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; line-height: 1.35; margin-bottom: .35rem; color: var(--text-primary); }
+    .news-inicio-excerpt { font-size: .82rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: .65rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .news-inicio-footer { display: flex; align-items: center; justify-content: space-between; font-size: .75rem; color: var(--text-muted); }
+    body.dark-mode .news-inicio-card { background: var(--bg-surface); border-color: var(--border); }
+    body.dark-mode .news-inicio-img { background: var(--bg-elevated); }
+    @media (max-width: 640px) { .news-inicio-grid { grid-template-columns: 1fr; } }
+
     .news-card-body {
       padding: 1.4rem 1.6rem;
     }
@@ -4255,12 +4287,12 @@
           </div>
         </div>
 
-        <!-- Continue learning -->
+        <!-- Noticias recientes en inicio -->
         <div class="section-header">
-          <h2 class="section-title">Continuar aprendiendo</h2>
-          <a class="section-link" href="#" onclick="goTo('biblioteca'); return false;">Ver toda la biblioteca</a>
+          <h2 class="section-title">Noticias recientes</h2>
+          <a class="section-link" href="#" onclick="goTo('noticias'); return false;">Ver todas</a>
         </div>
-        <div class="courses-grid" id="continueGrid"></div>
+        <div class="news-inicio-grid" id="newsInicioGrid"></div>
       </section>
 
       <!-- ═════ VIEW: BIBLIOTECA ═════ -->
@@ -5323,7 +5355,7 @@
       try { setGreeting(); } catch(e) { console.error('setGreeting:', e); }
       try { hydrateProfile(); } catch(e) { console.error('hydrateProfile:', e); }
       try { renderLibrary('todos'); } catch(e) { console.error('renderLibrary:', e); }
-      try { renderContinueLearning(); } catch(e) { console.error('renderContinueLearning:', e); }
+      try { renderNewsInicio(); } catch(e) { console.error('renderNewsInicio:', e); }
       try { renderWebinars(); } catch(e) { console.error('renderWebinars:', e); }
       try { renderPdfs(); } catch(e) { console.error('renderPdfs:', e); }
       try { renderNews(); } catch(e) { console.error('renderNews:', e); }
@@ -5513,12 +5545,37 @@
         : emptyState('course', 'Aún no hay cursos disponibles', 'Los cursos aparecerán aquí en cuanto los agregues al panel de administración.');
     }
 
-    function renderContinueLearning() {
-      const inProgress = COURSES.filter(c => c.progress > 0 && c.progress < 100).slice(0, 4);
-      const grid = document.getElementById('continueGrid');
-      grid.innerHTML = inProgress.length
-        ? inProgress.map(courseCard).join('')
-        : emptyState('course', 'Nada en progreso por ahora', 'Cuando empieces un curso, aparecerá aquí para que puedas retomarlo fácilmente.');
+    function renderNewsInicio() {
+      const grid = document.getElementById('newsInicioGrid');
+      if (!grid) return;
+      const catColors = {
+        'Dermatología': { bg: 'linear-gradient(135deg,#2e5f7a,#5a96b5)', emoji: '🔬' },
+        'Nutrición': { bg: 'linear-gradient(135deg,#6a8a4f,#8ab563)', emoji: '🥗' },
+        'Tendencia': { bg: 'linear-gradient(135deg,#907761,#c7b69f)', emoji: '✨' },
+        'Estética': { bg: 'linear-gradient(135deg,#8b6fa3,#b695c0)', emoji: '💆' },
+        'Novedad': { bg: 'linear-gradient(135deg,#d4a44c,#e8c876)', emoji: '🆕' },
+        'Curso': { bg: 'linear-gradient(135deg,#2e5f7a,#7db4cf)', emoji: '📚' },
+        'Artículo': { bg: 'linear-gradient(135deg,#69503c,#ab9680)', emoji: '📝' }
+      };
+      const items = NEWS.slice(0, 4);
+      grid.innerHTML = items.map(n => {
+        const cat = catColors[n.cat] || catColors['Novedad'];
+        return `
+          <div class="news-inicio-card" onclick="goTo('noticias')">
+            <div class="news-inicio-img" style="background:${cat.bg};display:grid;place-items:center;">
+              <span style="font-size:3.5rem;opacity:.9;filter:drop-shadow(0 2px 8px rgba(0,0,0,.15));">${cat.emoji}</span>
+            </div>
+            <div class="news-inicio-body">
+              <div class="news-inicio-cat">${n.cat}</div>
+              <div class="news-inicio-title">${n.title}</div>
+              <div class="news-inicio-excerpt">${n.excerpt || ''}</div>
+              <div class="news-inicio-footer">
+                <span>${n.author || 'Dermalysse'}</span>
+                <span>${n.date}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
     }
 
     // ─── Detalle del curso ───
@@ -5907,17 +5964,21 @@
       }
       grid.innerHTML = PDFS.map(p => {
         const onclick = p.drive ? `onclick="window.open('${p.drive}','_blank')"` : `onclick="showToast('Descarga disponible próximamente')"`;
+        const coverImg = p.img ? `<div style="width:100%;height:120px;overflow:hidden;border-bottom:1px solid var(--border-soft);"><img src="${driveImageUrl(p.img)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'"></div>` : '';
         return `
-        <div class="pdf-card" ${onclick}>
-          <div class="pdf-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-          </div>
-          <div class="pdf-info">
-            <div class="pdf-name">${p.name}</div>
-            <div class="pdf-meta"><span>${p.pages} pág.</span><span>${p.size}</span></div>
-          </div>
-          <div class="pdf-download">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <div class="pdf-card" ${onclick} style="${coverImg ? 'padding-top:0;' : ''}">
+          ${coverImg}
+          <div style="display:flex;align-items:center;gap:1rem;padding:${coverImg ? '1rem 1.25rem' : '0'};">
+            <div class="pdf-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            </div>
+            <div class="pdf-info">
+              <div class="pdf-name">${p.name}</div>
+              <div class="pdf-meta"><span>${p.pages} pág.</span><span>${p.size}</span></div>
+            </div>
+            <div class="pdf-download">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
           </div>
         </div>`;
       }).join('');
@@ -5929,11 +5990,21 @@
         main.innerHTML = emptyState('news', 'Sin noticias por ahora', 'Las últimas novedades y artículos del mundo Dermalysse aparecerán aquí.');
         return;
       }
-      const imgs = ['foto1','foto2','foto3','foto4'];
-      main.innerHTML = NEWS.map((n, i) => `
-        <article class="news-card" onclick="showToast('Abriendo: ${n.title}')">
-          <div class="news-card-img">
-            <img src="img/noticias/${imgs[i % 4]}.jpg" onerror="this.style.display='none'" alt="${n.title}">
+      const catVisuals = {
+        'Dermatología': { bg: 'linear-gradient(135deg,#2e5f7a,#5a96b5)', emoji: '🔬' },
+        'Nutrición': { bg: 'linear-gradient(135deg,#6a8a4f,#8ab563)', emoji: '🥗' },
+        'Tendencia': { bg: 'linear-gradient(135deg,#907761,#c7b69f)', emoji: '✨' },
+        'Estética': { bg: 'linear-gradient(135deg,#8b6fa3,#b695c0)', emoji: '💆' },
+        'Novedad': { bg: 'linear-gradient(135deg,#d4a44c,#e8c876)', emoji: '🆕' },
+        'Curso': { bg: 'linear-gradient(135deg,#2e5f7a,#7db4cf)', emoji: '📚' },
+        'Artículo': { bg: 'linear-gradient(135deg,#69503c,#ab9680)', emoji: '📝' }
+      };
+      main.innerHTML = NEWS.map(n => {
+        const vis = catVisuals[n.cat] || catVisuals['Novedad'];
+        return `
+        <article class="news-card" onclick="showToast('${n.title.substring(0,40)}...')">
+          <div class="news-card-img" style="background:${vis.bg};display:grid;place-items:center;">
+            <span style="font-size:3.5rem;opacity:.9;">${vis.emoji}</span>
           </div>
           <div class="news-card-body">
             <div class="news-card-cat">${n.cat}</div>
@@ -5941,8 +6012,8 @@
             <p class="news-card-excerpt">${n.excerpt}</p>
             <div class="news-card-meta">${n.date} · ${n.author}</div>
           </div>
-        </article>
-      `).join('');
+        </article>`;
+      }).join('');
     }
 
     function renderNotifs() {
