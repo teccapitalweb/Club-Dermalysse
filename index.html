@@ -4882,70 +4882,96 @@
        SCRIPTS (sin cambios desde la versión anterior)
        ═══════════════════════════════════════════════════ -->
   <script>
-    const COURSES = [
-      {
-        id: 'ejemplo-1',
-        name: 'Fundamentos de Dermatología Estética',
-        cat: 'dermatologia',
-        duration: '4 h 20 min',
-        level: 'Intermedio',
-        progress: 35,
-        description: 'Un recorrido completo por los principios de la dermatología estética moderna. Aprenderás a identificar tipos de piel, evaluar condiciones comunes y diseñar protocolos de tratamiento personalizados.',
-        instructor: 'Dr. Miguel Castro',
-        lessons: [
-          { id: 1, title: 'Introducción al curso', duration: '08:24', completed: true },
-          { id: 2, title: 'Anatomía y fisiología de la piel', duration: '22:15', completed: true },
-          { id: 3, title: 'Clasificación de tipos de piel (Fitzpatrick)', duration: '18:42', completed: true },
-          { id: 4, title: 'Evaluación dermatológica inicial', duration: '25:08', completed: false, current: true },
-          { id: 5, title: 'Principios de los peelings químicos', duration: '32:50', completed: false },
-          { id: 6, title: 'Protocolos para piel sensible', duration: '28:16', completed: false },
-          { id: 7, title: 'Tratamiento del melasma', duration: '35:20', completed: false },
-          { id: 8, title: 'Caso clínico: acné adulto', duration: '24:45', completed: false },
-          { id: 9, title: 'Cuidado post-tratamiento', duration: '19:30', completed: false },
-          { id: 10, title: 'Cierre y examen final', duration: '15:10', completed: false }
-        ]
-      }
-    ];
+    // ═══ SYNC: Lee datos del Admin desde localStorage ═══
+    const SYNC_KEYS = {
+      courses: 'dermalysse_sync_courses',
+      webinars: 'dermalysse_sync_webinars',
+      pdfs: 'dermalysse_sync_pdfs',
+      news: 'dermalysse_sync_news',
+      notifs: 'dermalysse_sync_notifs',
+      members: 'dermalysse_sync_members'
+    };
+    function syncRead(key) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : null; } catch(e) { return null; } }
 
-    const WEBINARS = [
-      {
-        day: '22',
-        month: 'Nov',
-        dateISO: '2026-11-22T19:00:00',
-        title: 'Peelings químicos: del ácido glicólico al TCA',
-        time: '19:00',
-        duration: '60 min',
-        speaker: 'Dr. Miguel Castro'
-      }
-    ];
+    // Cursos: transformar formato Admin → Club
+    const _rawCourses = syncRead(SYNC_KEYS.courses) || [];
+    const COURSES = _rawCourses.filter(c => c.status === 'published').map(c => {
+      const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
+      const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
+      return {
+        id: c.id,
+        name: c.name,
+        cat: (c.cat||'').toLowerCase().replace(/í/g,'i').replace(/é/g,'e'),
+        duration: durText,
+        level: c.level,
+        progress: 0,
+        description: c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.',
+        instructor: c.instructor || '',
+        img: c.img || '',
+        lessons: (c.lessons||[]).map((l,i) => ({
+          id: i+1,
+          title: l.name,
+          duration: l.dur || '',
+          completed: false,
+          current: i === 0,
+          drive: l.drive || ''
+        }))
+      };
+    });
 
-    const PDFS = [
-      {
-        name: 'Guía completa · Protocolos de limpieza facial',
-        pages: 32,
-        size: '4.2 MB'
-      }
-    ];
+    // Webinars: transformar formato Admin → Club
+    const _rawWebinars = syncRead(SYNC_KEYS.webinars) || [];
+    const WEBINARS = _rawWebinars.filter(w => w.status === 'scheduled').map(w => {
+      const d = new Date(w.date);
+      return {
+        day: String(d.getDate()),
+        month: d.toLocaleString('es-MX',{month:'short'}).replace('.',''),
+        dateISO: w.date,
+        title: w.title,
+        time: d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
+        duration: w.duration,
+        speaker: w.speaker,
+        live: w.live || '',
+        drive: w.drive || ''
+      };
+    });
 
-    const NEWS = [
-      {
-        cat: 'Novedad',
-        title: 'Lanzamos la certificación premium con valor curricular internacional',
-        excerpt: 'A partir de diciembre, todos los cursos completos incluyen certificado con QR verificable y código internacional.',
-        date: 'Hace 2 días',
-        author: 'Equipo Dermalysse'
-      }
-    ];
+    // PDFs: transformar formato Admin → Club
+    const _rawPdfs = syncRead(SYNC_KEYS.pdfs) || [];
+    const PDFS = _rawPdfs.map(p => ({
+      name: p.name,
+      pages: p.pages,
+      size: Math.round(p.pages * 0.15 * 10)/10 + ' MB',
+      drive: p.drive || '',
+      img: p.img || ''
+    }));
 
-    const NOTIFS = [
-      {
-        unread: true,
-        icon: 'play',
-        title: 'Nuevo webinar programado',
-        text: '"Peelings químicos" el 22 de noviembre a las 19:00 hrs.',
-        time: 'Hace 2 horas'
-      }
-    ];
+    // Noticias: transformar formato Admin → Club
+    const _rawNews = syncRead(SYNC_KEYS.news) || [];
+    const NEWS = _rawNews.filter(n => n.status === 'published').map(n => {
+      const daysAgo = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
+      return {
+        cat: n.cat,
+        title: n.title,
+        excerpt: n.title,
+        date: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días',
+        author: n.author
+      };
+    });
+
+    // Notificaciones: transformar formato Admin → Club
+    const _rawNotifs = syncRead(SYNC_KEYS.notifs) || [];
+    const NOTIFS = _rawNotifs.slice(0, 10).map(n => {
+      const icons = {curso:'book',vivo:'play',pdf:'file',promo:'tag'};
+      const daysAgo = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
+      return {
+        unread: daysAgo < 3,
+        icon: icons[n.type] || 'bell',
+        title: n.title,
+        text: n.msg,
+        time: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días'
+      };
+    });
 
     /* ═══ LOGROS (demo — modifica este array para personalizar) ═══ */
     const LOGROS = [
@@ -5102,6 +5128,25 @@
       const profile = { name, lastname, email, phone, city:'', bio:'' };
       safeSet(PROFILE_KEY, JSON.stringify(profile));
       safeSet(AUTH_KEY, JSON.stringify({ email, loggedAt: Date.now() }));
+
+      // Sync: agregar miembro a la lista compartida con Admin
+      try {
+        const members = syncRead(SYNC_KEYS.members) || [];
+        const exists = members.find(m => m.email === email);
+        if (!exists) {
+          members.push({
+            id: 'm-' + Date.now(),
+            name: name + ' ' + lastname,
+            email: email,
+            plan: 'Premium',
+            status: 'active',
+            joined: new Date().toISOString().split('T')[0],
+            courses: 0
+          });
+          safeSet(SYNC_KEYS.members, JSON.stringify(members));
+        }
+      } catch(e) {}
+
       enterApp();
       return false;
     }
