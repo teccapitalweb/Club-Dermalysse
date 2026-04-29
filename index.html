@@ -5096,7 +5096,8 @@
         duration: w.duration,
         speaker: w.speaker,
         live: w.live || '',
-        drive: w.drive || ''
+        drive: w.drive || '',
+        img: w.img || ''
       };
     });
 
@@ -6042,7 +6043,8 @@
         const recBtn = w.drive ? `<a href="${w.drive}" target="_blank" class="webinar-item-action" style="background:var(--bg-elevated);color:var(--text-secondary);text-decoration:none;border:1px solid var(--border);" onclick="event.stopPropagation()">Ver grabación</a>` : '';
         const actionBtn = liveBtn || recBtn || `<button class="webinar-item-action">Reservar</button>`;
         return `
-        <div class="webinar-item" onclick="showToast('${w.title}')">
+        <div class="webinar-item" onclick="showToast('${w.title}')" style="overflow:hidden;">
+          ${w.img ? '<div style="width:120px;min-height:80px;overflow:hidden;border-right:1px solid var(--border-soft);flex-shrink:0;"><img src="' + driveImageUrl(w.img) + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display=\'none\'"></div>' : ''}
           <div class="webinar-date">
             <div class="webinar-date-day">${w.day}</div>
             <div class="webinar-date-month">${w.month}</div>
