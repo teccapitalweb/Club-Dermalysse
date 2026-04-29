@@ -5932,7 +5932,7 @@
         + '<div style="position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(to right,#2e5f7a,#5a96b5,#2e5f7a);"></div>'
         + '<div style="position:absolute;bottom:0;left:0;right:0;height:8px;background:linear-gradient(to right,#2e5f7a,#5a96b5,#2e5f7a);"></div>'
         + '<div style="position:absolute;inset:28px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:1rem 2rem;text-align:center;font-family:DM Sans,sans-serif;">'
-        + '<div style="text-align:center;"><img src="' + logoB64 + '" style="height:130px;object-fit:contain;display:block;margin:0 auto;" alt="Dermalysse">'
+        + '<div style="text-align:center;"><img src="' + logoB64 + '" style="height:110px;object-fit:contain;display:block;margin:0 auto;" alt="Dermalysse">'
         + '<div style="font-size:.68rem;color:#907761;letter-spacing:.12em;margin-top:.25rem;">Club de Miembros \u00b7 Formaci\u00f3n Profesional en Dermatolog\u00eda y Est\u00e9tica</div></div>'
         + '<div style="width:100%;margin:.4rem 0;"><div style="background:linear-gradient(135deg,#2e5f7a,#3a7a9a);padding:.7rem 2rem;border-radius:3px;">'
         + '<div style="font-size:1.45rem;font-weight:800;color:white;letter-spacing:.12em;">CERTIFICADO DE ACREDITACI\u00d3N</div></div></div>'
@@ -5942,18 +5942,18 @@
         + '<div><div style="font-size:1.35rem;font-weight:700;color:#2e5f7a;font-style:italic;">' + course.name + '</div></div>'
         + '<div style="font-size:.75rem;color:#907761;letter-spacing:.03em;">Carga acad\u00e9mica: <strong style="color:#2d1f12;">' + numClases + ' sesiones</strong> \u00a0|\u00a0 \u00c1rea de formaci\u00f3n: <strong style="color:#2d1f12;">' + catLabel + '</strong></div>'
         + '<div style="display:flex;justify-content:center;gap:2.5rem;width:100%;align-items:flex-end;">'
-        + '<div style="text-align:center;"><img src="' + firmaDirector + '" style="height:90px;object-fit:contain;display:block;margin:0 auto;">'
+        + '<div style="text-align:center;"><img src="' + firmaDirector + '" style="height:70px;object-fit:contain;display:block;margin:0 auto;">'
         + '<div style="width:200px;border-top:1.5px solid #2e5f7a;margin:0 auto .2rem;"></div>'
         + '<div style="font-size:.7rem;font-weight:700;color:#2d1f12;">Director Acad\u00e9mico</div>'
         + '<div style="font-size:.62rem;color:#907761;">Lic. Eduardo Cabrera Hern\u00e1ndez</div>'
         + '<div style="font-size:.58rem;color:#ab9680;">Club Dermalysse</div></div>'
         + '<div style="text-align:center;"><div style="font-size:.78rem;color:#69503c;font-style:italic;">Emitido el ' + today + '</div></div>'
-        + '<div style="text-align:center;"><img src="' + firmaIPCI + '" style="height:90px;object-fit:contain;display:block;margin:0 auto;">'
+        + '<div style="text-align:center;"><img src="' + firmaIPCI + '" style="height:70px;object-fit:contain;display:block;margin:0 auto;">'
         + '<div style="width:200px;border-top:1.5px solid #2e5f7a;margin:0 auto .2rem;"></div>'
         + '<div style="font-size:.7rem;font-weight:700;color:#2d1f12;">Coordinaci\u00f3n de Certificaci\u00f3n</div>'
         + '<div style="font-size:.62rem;color:#907761;">IPCI Latinoamericano</div></div></div>'
         + '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding-top:.35rem;border-top:1px solid #d4e8f2;">'
-        + '<div style="width:50px;height:50px;border-radius:3px;overflow:hidden;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent('https://club.dermalysse.com/verify/' + code) + '" style="width:100%;height:100%;display:block;" alt="QR"></div>'
+        + '<div id="certQRCode" style="width:50px;height:50px;border-radius:3px;overflow:hidden;"></div>'
         + '<div style="text-align:center;font-size:.6rem;color:#907761;letter-spacing:.02em;flex:1;">Folio: ' + code + ' \u00a0|\u00a0 club.dermalysse.com<br>Certificado emitido digitalmente por Club Dermalysse / IPCI Latinoamericano</div>'
         + '<div style="width:42px;"></div></div>'
         + '</div></div>'
@@ -5963,6 +5963,14 @@
         + '</div></div>';
       ov.innerHTML = h;
       document.body.appendChild(ov);
+      try {
+        var qrData = JSON.stringify({n: userName, c: course.name, f: code, d: today, s: numClases, a: catLabel});
+        var qrUrl = 'verify.html?d=' + btoa(unescape(encodeURIComponent(qrData)));
+        var qrEl = document.getElementById('certQRCode');
+        if (qrEl && typeof QRCode !== 'undefined') {
+          new QRCode(qrEl, {text: qrUrl, width: 100, height: 100, correctLevel: QRCode.CorrectLevel.M});
+        }
+      } catch(e) { console.log('QR error', e); }
       document.getElementById('certCloseBtn').onclick = function() { ov.remove(); };
       ov.onclick = function(e) { if (e.target === ov) ov.remove(); };
       document.getElementById('certDownloadBtn').onclick = function() {

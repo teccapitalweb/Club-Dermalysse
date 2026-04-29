@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación de Certificado — Club Dermalysse</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(145deg, #f5f0eb 0%, #e8dfd6 40%, #d4e8f2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(46,95,122,.12), 0 4px 16px rgba(0,0,0,.06);
+      max-width: 440px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .card-header {
+      background: linear-gradient(135deg, #2e5f7a, #3a7a9a);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 14px solid #3a7a9a;
+    }
+    .card-header h1 {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+    }
+    .card-header .logo-text {
+      color: rgba(255,255,255,.7);
+      font-size: .75rem;
+      margin-top: .3rem;
+      letter-spacing: .04em;
+    }
+    .card-body {
+      padding: 2.2rem 2rem 1.8rem;
+      text-align: center;
+    }
+    .check-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.2rem;
+      box-shadow: 0 8px 24px rgba(39,174,96,.25);
+      animation: popIn .5s ease-out;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .check-icon svg { width: 32px; height: 32px; }
+    .status {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #27ae60;
+      margin-bottom: .4rem;
+    }
+    .status-sub {
+      font-size: .85rem;
+      color: #907761;
+      margin-bottom: 1.5rem;
+    }
+    .info-grid {
+      text-align: left;
+      background: #f9f6f3;
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+    .info-row {
+      padding: .6rem 0;
+      border-bottom: 1px solid #ece5dc;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label {
+      font-size: .68rem;
+      color: #907761;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 600;
+      margin-bottom: .15rem;
+    }
+    .info-value {
+      font-size: .95rem;
+      color: #2d1f12;
+      font-weight: 600;
+    }
+    .info-value.name {
+      font-size: 1.1rem;
+      color: #2e5f7a;
+      font-weight: 800;
+    }
+    .card-footer {
+      background: #f9f6f3;
+      padding: 1rem 2rem;
+      text-align: center;
+      border-top: 1px solid #ece5dc;
+    }
+    .card-footer p {
+      font-size: .7rem;
+      color: #ab9680;
+      line-height: 1.5;
+    }
+    .card-footer a {
+      color: #2e5f7a;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .error-icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.2rem;
+      box-shadow: 0 8px 24px rgba(231,76,60,.25);
+    }
+    .error-icon svg { width: 32px; height: 32px; }
+    .status.error { color: #e74c3c; }
+  </style>
+</head>
+<body>
+  <div class="card" id="verifyCard"></div>
+  <script>
+    (function() {
+      var card = document.getElementById('verifyCard');
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var encoded = params.get('d');
+        if (!encoded) throw new Error('No data');
+        var json = decodeURIComponent(escape(atob(encoded)));
+        var data = JSON.parse(json);
+        if (!data.n || !data.c || !data.f) throw new Error('Invalid data');
+
+        card.innerHTML = ''
+          + '<div class="card-header">'
+          + '<h1>CLUB DERMALYSSE</h1>'
+          + '<div class="logo-text">Sistema de Verificación de Certificados</div>'
+          + '</div>'
+          + '<div class="card-body">'
+          + '<div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+          + '<div class="status">Certificado Verificado</div>'
+          + '<div class="status-sub">Este certificado es auténtico y fue emitido oficialmente</div>'
+          + '<div class="info-grid">'
+          + '<div class="info-row"><div class="info-label">Otorgado a</div><div class="info-value name">' + data.n + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Programa académico</div><div class="info-value">' + data.c + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Carga académica</div><div class="info-value">' + data.s + ' sesiones · ' + data.a + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Fecha de emisión</div><div class="info-value">' + data.d + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Folio</div><div class="info-value">' + data.f + '</div></div>'
+          + '</div>'
+          + '</div>'
+          + '<div class="card-footer">'
+          + '<p>Certificado emitido digitalmente por<br><a href="#">Club Dermalysse</a> · <a href="#">IPCI Latinoamericano</a></p>'
+          + '</div>';
+      } catch(e) {
+        card.innerHTML = ''
+          + '<div class="card-header">'
+          + '<h1>CLUB DERMALYSSE</h1>'
+          + '<div class="logo-text">Sistema de Verificación de Certificados</div>'
+          + '</div>'
+          + '<div class="card-body">'
+          + '<div class="error-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>'
+          + '<div class="status error">Certificado No Encontrado</div>'
+          + '<div class="status-sub">No se pudo verificar este certificado. El enlace puede ser inválido o estar dañado.</div>'
+          + '</div>'
+          + '<div class="card-footer">'
+          + '<p>Si crees que es un error, contacta a<br><a href="#">Club Dermalysse</a></p>'
+          + '</div>';
+      }
+    })();
+  </script>
+</body>
+</html>
