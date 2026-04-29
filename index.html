@@ -5942,18 +5942,18 @@
         + '<div><div style="font-size:1.35rem;font-weight:700;color:#2e5f7a;font-style:italic;">' + course.name + '</div></div>'
         + '<div style="font-size:.75rem;color:#907761;letter-spacing:.03em;">Carga acad\u00e9mica: <strong style="color:#2d1f12;">' + numClases + ' sesiones</strong> \u00a0|\u00a0 \u00c1rea de formaci\u00f3n: <strong style="color:#2d1f12;">' + catLabel + '</strong></div>'
         + '<div style="display:flex;justify-content:center;gap:2.5rem;width:100%;align-items:flex-end;">'
-        + '<div style="text-align:center;"><img src="' + firmaDirector + '" style="height:70px;object-fit:contain;display:block;margin:0 auto;">'
+        + '<div style="text-align:center;"><img src="' + firmaDirector + '" style="height:65px;object-fit:contain;display:block;margin:0 auto;max-width:180px;">'
         + '<div style="width:200px;border-top:1.5px solid #2e5f7a;margin:0 auto .2rem;"></div>'
         + '<div style="font-size:.7rem;font-weight:700;color:#2d1f12;">Director Acad\u00e9mico</div>'
         + '<div style="font-size:.62rem;color:#907761;">Lic. Eduardo Cabrera Hern\u00e1ndez</div>'
         + '<div style="font-size:.58rem;color:#ab9680;">Club Dermalysse</div></div>'
         + '<div style="text-align:center;"><div style="font-size:.78rem;color:#69503c;font-style:italic;">Emitido el ' + today + '</div></div>'
-        + '<div style="text-align:center;"><img src="' + firmaIPCI + '" style="height:70px;object-fit:contain;display:block;margin:0 auto;">'
+        + '<div style="text-align:center;"><img src="' + firmaIPCI + '" style="height:65px;object-fit:contain;display:block;margin:0 auto;max-width:180px;">'
         + '<div style="width:200px;border-top:1.5px solid #2e5f7a;margin:0 auto .2rem;"></div>'
         + '<div style="font-size:.7rem;font-weight:700;color:#2d1f12;">Coordinaci\u00f3n de Certificaci\u00f3n</div>'
         + '<div style="font-size:.62rem;color:#907761;">IPCI Latinoamericano</div></div></div>'
         + '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding-top:.35rem;border-top:1px solid #d4e8f2;">'
-        + '<div id="certQRCode" style="width:50px;height:50px;border-radius:3px;overflow:hidden;"></div>'
+        + '<div id="certQRCode" style="width:80px;height:80px;border-radius:3px;overflow:hidden;"></div>'
         + '<div style="text-align:center;font-size:.6rem;color:#907761;letter-spacing:.02em;flex:1;">Folio: ' + code + ' \u00a0|\u00a0 club.dermalysse.com<br>Certificado emitido digitalmente por Club Dermalysse / IPCI Latinoamericano</div>'
         + '<div style="width:42px;"></div></div>'
         + '</div></div>'
@@ -5964,11 +5964,13 @@
       ov.innerHTML = h;
       document.body.appendChild(ov);
       try {
-        var qrData = JSON.stringify({n: userName, c: course.name, f: code, d: today, s: numClases, a: catLabel});
-        var qrUrl = 'verify.html?d=' + btoa(unescape(encodeURIComponent(qrData)));
+        var qrData = btoa(unescape(encodeURIComponent(JSON.stringify({n:userName,c:course.name,f:code,d:today,s:numClases,a:catLabel}))));
+        var base = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+        var qrUrl = base + 'verify.html?d=' + qrData;
         var qrEl = document.getElementById('certQRCode');
         if (qrEl && typeof QRCode !== 'undefined') {
-          new QRCode(qrEl, {text: qrUrl, width: 100, height: 100, correctLevel: QRCode.CorrectLevel.M});
+          new QRCode(qrEl, {text: qrUrl, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.L});
+          setTimeout(function(){ var c = qrEl.querySelector('canvas'); var im = qrEl.querySelector('img'); if(c) c.style.cssText='width:100%!important;height:100%!important;'; if(im) im.style.cssText='width:100%!important;height:100%!important;'; }, 100);
         }
       } catch(e) { console.log('QR error', e); }
       document.getElementById('certCloseBtn').onclick = function() { ov.remove(); };
