@@ -4254,7 +4254,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/></svg>
             </div>
             <div class="stat-card-body">
-              <div class="stat-card-value">0</div>
+              <div class="stat-card-value" id="statInProgress">0</div>
               <div class="stat-card-label">Cursos en progreso</div>
             </div>
           </div>
@@ -4263,7 +4263,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             </div>
             <div class="stat-card-body">
-              <div class="stat-card-value">0</div>
+              <div class="stat-card-value" id="statCompleted">0</div>
               <div class="stat-card-label">Cursos completados</div>
             </div>
           </div>
@@ -4272,7 +4272,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
             <div class="stat-card-body">
-              <div class="stat-card-value">0 h</div>
+              <div class="stat-card-value" id="statHours">0 h</div>
               <div class="stat-card-label">De aprendizaje</div>
             </div>
           </div>
@@ -4281,7 +4281,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-3.5 2 1-4-3-2.5 4-.5L12 6l1.5 4 4 .5-3 2.5 1 4z"/></svg>
             </div>
             <div class="stat-card-body">
-              <div class="stat-card-value">—</div>
+              <div class="stat-card-value" id="statAverage">—</div>
               <div class="stat-card-label">Promedio</div>
             </div>
           </div>
@@ -4333,10 +4333,6 @@
             <h1 class="course-detail-title" id="courseDetailTitle">—</h1>
             <p class="course-detail-desc" id="courseDetailDesc">—</p>
             <div class="course-detail-meta">
-              <span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Duración: <strong id="courseDetailDuration">—</strong>
-              </span>
               <span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                 Nivel: <strong id="courseDetailLevel">—</strong>
@@ -5404,6 +5400,7 @@
       try { renderLibrary('todos'); } catch(e) { console.error('renderLibrary:', e); }
       try { renderNewsInicio(); } catch(e) { console.error('renderNewsInicio:', e); }
       try { renderCursosInicio(); } catch(e) { console.error('renderCursosInicio:', e); }
+      try { renderStats(); } catch(e) { console.error('renderStats:', e); }
       try { renderWebinars(); } catch(e) { console.error('renderWebinars:', e); }
       try { renderPdfs(); } catch(e) { console.error('renderPdfs:', e); }
       try { renderNews(); } catch(e) { console.error('renderNews:', e); }
@@ -5630,6 +5627,49 @@
       grid.innerHTML = recent.map(courseCard).join('');
     }
 
+    function renderStats() {
+      var inProgress = 0;
+      var completed = 0;
+      var totalMinutes = 0;
+      var totalProgress = 0;
+
+      COURSES.forEach(function(c) {
+        if (c.progress === 100) {
+          completed++;
+        } else if (c.progress > 0) {
+          inProgress++;
+        }
+        totalProgress += (c.progress || 0);
+
+        // Sumar minutos de clases completadas
+        if (c.lessons) {
+          c.lessons.forEach(function(l) {
+            if (l.completed) {
+              var mins = parseInt(l.duration) || 0;
+              if (l.duration && l.duration.indexOf('hora') > -1) mins = (parseInt(l.duration) || 1) * 60;
+              if (mins === 0 && l.duration) {
+                var hm = l.duration.match(/(\d+)/);
+                if (hm) mins = parseInt(hm[1]);
+              }
+              totalMinutes += mins;
+            }
+          });
+        }
+      });
+
+      var avg = COURSES.length > 0 ? Math.round(totalProgress / COURSES.length) : 0;
+      var hours = totalMinutes >= 60 ? Math.floor(totalMinutes / 60) + ' h ' + (totalMinutes % 60 > 0 ? totalMinutes % 60 + ' min' : '') : totalMinutes + ' min';
+
+      var el1 = document.getElementById('statInProgress');
+      var el2 = document.getElementById('statCompleted');
+      var el3 = document.getElementById('statHours');
+      var el4 = document.getElementById('statAverage');
+      if (el1) el1.textContent = inProgress;
+      if (el2) el2.textContent = completed;
+      if (el3) el3.textContent = totalMinutes === 0 ? '0 h' : hours;
+      if (el4) el4.textContent = COURSES.length > 0 ? avg + '%' : '—';
+    }
+
     // ─── Detalle del curso ───
     let currentCourseId = null;
 
@@ -5646,7 +5686,6 @@
       document.getElementById('courseDetailCat').textContent = course.cat;
       document.getElementById('courseDetailTitle').textContent = course.name;
       document.getElementById('courseDetailDesc').textContent = course.description || 'Descripción del curso.';
-      document.getElementById('courseDetailDuration').textContent = course.duration;
       document.getElementById('courseDetailLevel').textContent = course.level;
       document.getElementById('courseDetailInstructor').textContent = course.instructor || 'Dermalysse';
 
@@ -5862,6 +5901,8 @@
           } else {
             showToast('✓ Clase completada — Siguiente desbloqueada');
           }
+          try { renderStats(); } catch(e) {}
+          try { renderCursosInicio(); } catch(e) {}
         }
       }
     }
@@ -5877,7 +5918,8 @@
       } catch(e) {}
 
       var today = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
-      var code = 'DRM-' + Date.now().toString(36).toUpperCase().slice(-6);
+      var code = 'DRML-' + new Date().getFullYear() + '-' + new Date().toISOString().slice(5,7) + new Date().toISOString().slice(8,10) + '-' + Date.now().toString(36).toUpperCase().slice(-5);
+      var numClases = course.lessons ? course.lessons.length : 0;
 
       var existing = document.getElementById('certOverlay');
       if (existing) existing.remove();
@@ -5886,26 +5928,73 @@
       overlay.id = 'certOverlay';
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1.5rem;overflow-y:auto;';
 
-      var certHTML = '<div style="width:100%;max-width:800px;">';
-      certHTML += '<div id="certPrintArea" style="background:#fff;padding:3.5rem 4rem;border:3px solid #2e5f7a;border-radius:16px;position:relative;text-align:center;overflow:hidden;">';
-      certHTML += '<div style="position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(to right,#2e5f7a,#5a96b5,#2e5f7a);border-radius:16px 16px 0 0;"></div>';
-      certHTML += '<div style="font-size:1.1rem;letter-spacing:.35em;text-transform:uppercase;color:#2e5f7a;font-weight:700;margin-bottom:2rem;">Dermalysse</div>';
-      certHTML += '<div style="font-size:.75rem;letter-spacing:.4em;text-transform:uppercase;color:#907761;font-weight:600;margin-bottom:1.5rem;">Certificado de finalizaci\u00f3n</div>';
-      certHTML += '<div style="font-size:2.6rem;font-weight:800;color:#2d1f12;margin-bottom:.5rem;">' + userName + '</div>';
-      certHTML += '<div style="font-size:1.05rem;color:#69503c;margin-bottom:.5rem;">Ha completado satisfactoriamente el curso</div>';
-      certHTML += '<div style="font-size:1.5rem;font-weight:700;color:#2e5f7a;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid #e3d7bf;">' + course.name + '</div>';
-      certHTML += '<div style="display:flex;justify-content:center;gap:3rem;font-size:.88rem;color:#907761;">';
-      certHTML += '<div>Fecha<strong style="display:block;color:#2d1f12;font-weight:600;margin-top:.2rem;">' + today + '</strong></div>';
-      certHTML += '<div>Nivel<strong style="display:block;color:#2d1f12;font-weight:600;margin-top:.2rem;">' + course.level + '</strong></div>';
-      certHTML += '<div>Duraci\u00f3n<strong style="display:block;color:#2d1f12;font-weight:600;margin-top:.2rem;">' + course.duration + '</strong></div>';
-      certHTML += '</div>';
-      certHTML += '<div style="font-size:.92rem;color:#69503c;margin-top:2rem;padding-top:1.5rem;border-top:1px solid #e3d7bf;">Instructor: <strong style="color:#2d1f12;">' + course.instructor + '</strong></div>';
-      certHTML += '<div style="font-size:.78rem;color:#ab9680;letter-spacing:.15em;margin-top:1rem;">C\u00f3digo: ' + code + '</div>';
-      certHTML += '</div>';
-      certHTML += '<div style="display:flex;gap:.75rem;justify-content:center;margin-top:1.25rem;">';
-      certHTML += '<button id="certPrintBtn" style="padding:.85rem 2.5rem;background:#2e5f7a;color:white;border:none;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;">Imprimir</button>';
-      certHTML += '<button id="certCloseBtn" style="padding:.85rem 1.5rem;background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.25);border-radius:10px;font-size:.95rem;font-weight:500;cursor:pointer;">Cerrar</button>';
-      certHTML += '</div></div>';
+      var certHTML = '<div style="width:100%;max-width:860px;">'
+        + '<div id="certPrintArea" style="background:#fff;padding:0;border-radius:8px;position:relative;overflow:hidden;">'
+        // Borde decorativo exterior
+        + '<div style="border:3px solid #2e5f7a;margin:8px;border-radius:4px;padding:3rem 3.5rem;position:relative;">'
+        // Borde interior
+        + '<div style="border:1px solid #d4e8f2;padding:2.5rem 2rem;border-radius:2px;">'
+        // Logo
+        + '<div style="text-align:center;margin-bottom:1.5rem;">'
+        + '<div style="font-size:1.6rem;letter-spacing:.4em;font-weight:800;color:#2e5f7a;font-family:DM Sans,sans-serif;">DERMALYSSE</div>'
+        + '<div style="font-size:.72rem;color:#907761;letter-spacing:.15em;margin-top:.25rem;">Club de Miembros · Formación Profesional en Dermatología</div>'
+        + '</div>'
+        // Título
+        + '<div style="text-align:center;margin:1.5rem 0;padding:1rem 2rem;background:linear-gradient(135deg,#2e5f7a,#5a96b5);border-radius:4px;">'
+        + '<div style="font-size:1.8rem;font-weight:800;color:white;letter-spacing:.08em;font-family:DM Sans,sans-serif;">CERTIFICADO DE ACREDITACIÓN</div>'
+        + '</div>'
+        // Texto otorgamiento
+        + '<div style="text-align:center;margin:2rem 0 1rem;">'
+        + '<div style="font-size:.95rem;color:#69503c;">Se otorga la presente constancia a</div>'
+        + '</div>'
+        // Nombre del usuario
+        + '<div style="text-align:center;margin-bottom:1.5rem;">'
+        + '<div style="font-size:2.4rem;font-weight:800;color:#2d1f12;font-family:DM Sans,sans-serif;padding-bottom:.5rem;border-bottom:2px solid #2e5f7a;display:inline-block;min-width:60%;">' + userName.toUpperCase() + '</div>'
+        + '</div>'
+        // Texto curso
+        + '<div style="text-align:center;margin:1.5rem 0 .75rem;">'
+        + '<div style="font-size:.92rem;color:#69503c;">Por haber acreditado satisfactoriamente el programa académico denominado:</div>'
+        + '</div>'
+        // Nombre del curso
+        + '<div style="text-align:center;margin-bottom:1.5rem;">'
+        + '<div style="font-size:1.5rem;font-weight:700;color:#2e5f7a;font-family:DM Sans,sans-serif;">' + course.name + '</div>'
+        + '</div>'
+        // Info académica
+        + '<div style="text-align:center;font-size:.85rem;color:#907761;margin-bottom:2rem;">'
+        + 'Carga académica: ' + numClases + ' sesiones &nbsp;|&nbsp; Área de formación: ' + (course.cat || 'Dermatología') + ' &nbsp;|&nbsp; Nivel: ' + course.level
+        + '</div>'
+        // Fecha
+        + '<div style="text-align:center;font-size:.92rem;color:#69503c;margin-bottom:2rem;font-style:italic;">'
+        + 'Emitido el ' + today
+        + '</div>'
+        // Firmas
+        + '<div style="display:flex;justify-content:center;gap:4rem;margin:2rem 0 1.5rem;">'
+        + '<div style="text-align:center;min-width:180px;">'
+        + '<div style="border-bottom:1px solid #2e5f7a;padding-bottom:.5rem;margin-bottom:.5rem;font-family:cursive;font-size:1.3rem;color:#2e5f7a;">Dermalysse</div>'
+        + '<div style="font-size:.78rem;font-weight:700;color:#2d1f12;">Dirección Académica</div>'
+        + '<div style="font-size:.7rem;color:#907761;">Club Dermalysse</div>'
+        + '</div>'
+        + '<div style="text-align:center;min-width:180px;">'
+        + '<div style="border-bottom:1px solid #2e5f7a;padding-bottom:.5rem;margin-bottom:.5rem;font-family:cursive;font-size:1.3rem;color:#2e5f7a;">IPCI</div>'
+        + '<div style="font-size:.78rem;font-weight:700;color:#2d1f12;">Coordinación de Certificación</div>'
+        + '<div style="font-size:.7rem;color:#907761;">IPCI Latinoamericano</div>'
+        + '</div>'
+        + '</div>'
+        // QR + Folio
+        + '<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #d4e8f2;">'
+        + '<div style="width:60px;height:60px;border:1px solid #d4e8f2;border-radius:4px;display:grid;place-items:center;font-size:.55rem;color:#907761;text-align:center;">QR<br>Code</div>'
+        + '<div style="text-align:center;flex:1;font-size:.7rem;color:#907761;">Folio: ' + code + ' &nbsp;|&nbsp; club.dermalysse.com<br>Certificado emitido digitalmente por Club Dermalysse / IPCI Latinoamericano</div>'
+        + '<div style="width:60px;"></div>'
+        + '</div>'
+        // Cierre bordes
+        + '</div></div></div>'
+        // Botones
+        + '<div style="display:flex;gap:.75rem;justify-content:center;margin-top:1.25rem;">'
+        + '<button id="certDownloadBtn" style="padding:.85rem 2.5rem;background:#2e5f7a;color:white;border:none;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;display:inline-flex;align-items:center;gap:.5rem;">'
+        + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+        + 'Descargar PDF</button>'
+        + '<button id="certCloseBtn" style="padding:.85rem 1.5rem;background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.25);border-radius:10px;font-size:.95rem;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;">Cerrar</button>'
+        + '</div></div>';
 
       overlay.innerHTML = certHTML;
       document.body.appendChild(overlay);
@@ -5913,16 +6002,19 @@
       document.getElementById('certCloseBtn').onclick = function() { overlay.remove(); };
       overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 
-      document.getElementById('certPrintBtn').onclick = function() {
+      document.getElementById('certDownloadBtn').onclick = function() {
         var area = document.getElementById('certPrintArea');
-        var content = area.innerHTML;
-        var w = window.open('', 'print', 'width=900,height=700');
+        var w = window.open('', 'print', 'width=960,height=700');
         if (w) {
-          w.document.write('<html><head><title>Certificado</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}</style></head><body><div style="' + area.style.cssText + '">' + content + '</div></body></html>');
+          w.document.write('<!DOCTYPE html><html><head><title>Certificado - ' + course.name + '</title>'
+            + '<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">'
+            + '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fff}'
+            + '@media print{body{padding:0}@page{size:landscape;margin:0.5cm}}</style>'
+            + '</head><body>' + area.outerHTML + '</body></html>');
           w.document.close();
           setTimeout(function(){ w.print(); }, 600);
         } else {
-          showToast('Usa captura de pantalla para guardar tu certificado');
+          showToast('Permite las ventanas emergentes para descargar');
         }
       };
     }
