@@ -3935,8 +3935,8 @@
     .btn-subscribe:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
     /* ═══ LOCK OVERLAY (modo explorador) ═══ */
-    .content-locked { position: relative; }
-    .content-locked::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.7); backdrop-filter: blur(3px); border-radius: var(--radius-sm); z-index: 5; pointer-events: none; }
+    .content-locked { position: relative; pointer-events: none; user-select: none; }
+    .content-locked::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.7); backdrop-filter: blur(3px); border-radius: var(--radius-sm); z-index: 5; }
     body.dark-mode .content-locked::after { background: rgba(30,30,30,.7); }
     .lock-banner { background: var(--bg-surface); border: 2px solid var(--azul-main); border-radius: var(--radius-sm); padding: 2rem; text-align: center; margin-bottom: 1.5rem; }
     .lock-banner h3 { color: var(--azul-dark); font-size: 1.1rem; margin-bottom: .5rem; }
@@ -4165,10 +4165,6 @@
         <a class="nav-item" data-view="logros" onclick="goTo('logros')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
           Logros
-        </a>
-        <a class="nav-item" data-view="ruta" onclick="goTo('ruta')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="14"/><circle cx="12" cy="17" r="3"/><path d="M8 17l-3 3M16 17l3 3"/></svg>
-          Ruta de aprendizaje
         </a>
         <a class="nav-item" data-view="config" onclick="goTo('config')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -7421,7 +7417,7 @@
       }
 
       // Banner de lock en TODAS las secciones de contenido
-      const lockViews = ['view-biblioteca','view-curso','view-webinar','view-pdf','view-noticias','view-foro','view-logros','view-ruta','view-descuento','view-canal','view-calculadora','view-protocolos','view-atlas','view-ficha'];
+      const lockViews = ['view-biblioteca','view-curso','view-webinar','view-pdf','view-noticias','view-foro','view-logros','view-descuento','view-canal','view-calculadora','view-protocolos','view-atlas','view-ficha','view-config','view-notif'];
       lockViews.forEach(id => {
         const view = document.getElementById(id);
         if (!view) return;
@@ -7433,9 +7429,15 @@
         if (header) header.after(banner); else view.prepend(banner);
       });
 
-      // Blur en las listas de contenido
-      document.querySelectorAll('#courseGrid, #webinarList, #pdfGrid, .foro-topics, .noticias-feed, .tools-grid, .logros-grid, .ruta-timeline').forEach(el => {
-        el.classList.add('content-locked');
+      // Blur en TODO el contenido de las secciones bloqueadas
+      lockViews.forEach(id => {
+        const view = document.getElementById(id);
+        if (!view) return;
+        // Aplicar blur a todos los hijos excepto el header y el lock-banner
+        Array.from(view.children).forEach(child => {
+          if (child.classList.contains('lock-banner') || child.classList.contains('view-header')) return;
+          child.classList.add('content-locked');
+        });
       });
     }
 
