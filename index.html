@@ -5273,7 +5273,7 @@
 
     // Notificaciones: transformar formato Admin → Club
     const _rawNotifs = syncRead(SYNC_KEYS.notifs) || [];
-    const NOTIFS = _rawNotifs.slice(0, 10).map(n => {
+    let NOTIFS = _rawNotifs.slice(0, 10).map(n => {
       const icons = {curso:'book',vivo:'play',pdf:'file',promo:'tag'};
       const daysAgo = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
       return {
