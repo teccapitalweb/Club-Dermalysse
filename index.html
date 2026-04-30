@@ -3904,6 +3904,12 @@
     .foro-reply-input { display: flex; gap: .5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }
     .foro-reply-input textarea { flex: 1; padding: .6rem .85rem; border: 1.5px solid var(--border-soft); border-radius: 10px; font-family: inherit; font-size: .88rem; resize: none; min-height: 44px; background: var(--bg-main); color: var(--text-primary); }
     .foro-back-btn { background: none; border: none; cursor: pointer; color: var(--azul-main); font-size: .9rem; font-weight: 600; font-family: inherit; padding: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: .3rem; }
+    .foro-heart { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: .3rem; padding: .3rem .5rem; border-radius: 8px; font-family: inherit; font-size: .82rem; color: var(--text-muted); transition: all .2s; }
+    .foro-heart:hover { background: rgba(220,38,38,.06); color: #e11d48; }
+    .foro-heart.liked { color: #e11d48; }
+    .foro-heart.liked svg { fill: #e11d48; stroke: #e11d48; }
+    .foro-heart svg { width: 16px; height: 16px; transition: transform .2s; }
+    .foro-heart:active svg { transform: scale(1.3); }
 
     /* ═══ NOTIFICACIONES: botón eliminar ═══ */
     .notif-item { position: relative; }
@@ -5560,7 +5566,7 @@
         if (user) await db.collection('users').doc(user.uid).set(profile, { merge: true });
       } catch(e) { console.error('Error guardando perfil:', e); }
       hydrateProfile();
-      showToast('Perfil actualizado ✓');
+      showToast('Perfil actualizado');
       return false;
     }
 
@@ -5939,7 +5945,7 @@
               document.getElementById('bannerCertBtn2').onclick = function() { generatePrintCertificate(); };
             }
           } else {
-            showToast('✓ Clase completada — Siguiente desbloqueada');
+            showToast('Clase completada — Siguiente desbloqueada');
           }
           try { renderStats(); } catch(e) {}
           try { renderCursosInicio(); } catch(e) {}
@@ -6218,10 +6224,13 @@
         list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Aún no hay temas. ¡Sé el primero en publicar!</div>';
       } else {
         const tagColors = { Consulta:'blue', Experiencia:'green', Curso:'amber', General:'' };
+        const uid = auth.currentUser ? auth.currentUser.uid : '';
         list.innerHTML = _foroTopics.map(t => {
           const initials = (t.authorName||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
           const ago = _timeAgo(t.createdAt);
           const replies = t.replyCount || 0;
+          const likes = (t.likes || []).length;
+          const liked = (t.likes || []).includes(uid);
           const tagClass = tagColors[t.tag] || '';
           return `<div class="foro-topic" onclick="viewForumTopic('${t.id}')">
             <div class="foro-avatar" style="background:var(--azul-dark);">${initials}</div>
@@ -6231,6 +6240,10 @@
                 <span>${_esc(t.authorName)}</span>
                 <span class="foro-tag ${tagClass}">${_esc(t.tag)}</span>
                 <span>${ago}</span>
+                <button class="foro-heart ${liked?'liked':''}" onclick="event.stopPropagation();toggleLikeTopic('${t.id}',this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <span>${likes||''}</span>
+                </button>
               </div>
             </div>
             <div class="foro-stats"><div class="foro-stat-num">${replies}</div><div class="foro-stat-label">respuestas</div></div>
@@ -6264,7 +6277,7 @@
         document.getElementById('foroCreateForm').style.display = 'none';
         document.getElementById('foroNewTitle').value = '';
         document.getElementById('foroNewBody').value = '';
-        showToast('Tema publicado ✓');
+        showToast('Tema publicado');
         renderForo();
       } catch(e) { showToast('Error: ' + e.message); }
     }
@@ -6285,18 +6298,25 @@
 
         // Cargar respuestas
         const repliesSnap = await db.collection('forum').doc(topicId).collection('replies').orderBy('createdAt','asc').get();
-        const replies = repliesSnap.docs.map(d => d.data());
+        const replies = repliesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const uid = auth.currentUser ? auth.currentUser.uid : '';
 
         let repliesHtml = replies.map(r => {
           const ri = (r.authorName||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-          return `<div class="foro-reply"><div class="foro-reply-avatar">${ri}</div><div class="foro-reply-body"><div class="foro-reply-author">${_esc(r.authorName)}</div><div class="foro-reply-text">${_esc(r.text)}</div><div class="foro-reply-time">${_timeAgo(r.createdAt)}</div></div></div>`;
+          const rLikes = (r.likes || []).length;
+          const rLiked = (r.likes || []).includes(uid);
+          return `<div class="foro-reply"><div class="foro-reply-avatar">${ri}</div><div class="foro-reply-body"><div class="foro-reply-author">${_esc(r.authorName)}</div><div class="foro-reply-text">${_esc(r.text)}</div><div class="foro-reply-time">${_timeAgo(r.createdAt)} <button class="foro-heart ${rLiked?'liked':''}" onclick="toggleLikeReply('${topicId}','${r.id}',this)" style="display:inline-flex;margin-left:.5rem;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${rLikes||''}</span></button></div></div></div>`;
         }).join('');
+
+        const tLikes = (t.likes || []).length;
+        const tLiked = (t.likes || []).includes(uid);
 
         content.innerHTML = `
           <div class="foro-thread">
             <div class="foro-thread-title">${_esc(t.title)}</div>
             <div class="foro-thread-meta">${_esc(t.authorName)} · ${_timeAgo(t.createdAt)} · <span class="foro-tag ${t.tag==='Consulta'?'blue':t.tag==='Experiencia'?'green':t.tag==='Curso'?'amber':''}">${_esc(t.tag)}</span></div>
             <div class="foro-thread-body">${_esc(t.body).replace(/\n/g,'<br>')}</div>
+            <div style="margin-bottom:1rem;"><button class="foro-heart ${tLiked?'liked':''}" onclick="toggleLikeTopic('${topicId}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${tLikes||''}</span></button></div>
             <div id="foroReplies">${repliesHtml || '<div style="color:var(--text-muted);font-size:.9rem;">Aún no hay respuestas.</div>'}</div>
             <div class="foro-reply-input">
               <textarea id="foroReplyText" placeholder="Escribe tu respuesta…" rows="2"></textarea>
@@ -6319,7 +6339,7 @@
         });
         // Incrementar contador
         await db.collection('forum').doc(topicId).update({ replyCount: firebase.firestore.FieldValue.increment(1) });
-        showToast('Respuesta publicada ✓');
+        showToast('Respuesta publicada');
         viewForumTopic(topicId);
       } catch(e) { showToast('Error: ' + e.message); }
     }
@@ -6341,6 +6361,45 @@
       return 'Hace ' + days + ' días';
     }
 
+    // ═══ LIKES (corazones) ═══
+    async function toggleLikeTopic(topicId, btn) {
+      try {
+        const uid = auth.currentUser.uid;
+        const ref = db.collection('forum').doc(topicId);
+        const doc = await ref.get();
+        if (!doc.exists) return;
+        let likes = doc.data().likes || [];
+        if (likes.includes(uid)) {
+          likes = likes.filter(id => id !== uid);
+          btn.classList.remove('liked');
+        } else {
+          likes.push(uid);
+          btn.classList.add('liked');
+        }
+        await ref.update({ likes });
+        btn.querySelector('span').textContent = likes.length || '';
+      } catch(e) { console.error('Like error:', e); }
+    }
+
+    async function toggleLikeReply(topicId, replyId, btn) {
+      try {
+        const uid = auth.currentUser.uid;
+        const ref = db.collection('forum').doc(topicId).collection('replies').doc(replyId);
+        const doc = await ref.get();
+        if (!doc.exists) return;
+        let likes = doc.data().likes || [];
+        if (likes.includes(uid)) {
+          likes = likes.filter(id => id !== uid);
+          btn.classList.remove('liked');
+        } else {
+          likes.push(uid);
+          btn.classList.add('liked');
+        }
+        await ref.update({ likes });
+        btn.querySelector('span').textContent = likes.length || '';
+      } catch(e) { console.error('Reply like error:', e); }
+    }
+
     function _esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
 
     // ═══════════════════════════════════════════
@@ -6349,6 +6408,7 @@
     async function toggleNotifSetting(el, key) {
       el.classList.toggle('active');
       const val = el.classList.contains('active');
+      showToast('Ajuste actualizado');
       try {
         const user = auth.currentUser;
         if (user) await db.collection('users').doc(user.uid).set({ settings: { [key]: val } }, { merge: true });
@@ -6399,7 +6459,7 @@
           document.getElementById('changePasswordForm').style.display = 'none';
           document.getElementById('pwNew').value = '';
           document.getElementById('pwConfirm').value = '';
-          showToast('Contraseña creada ✓ Ahora puedes entrar con email + contraseña también');
+          showToast('Contraseña creada. Ahora puedes entrar con email + contraseña también');
         } catch(err) { showToast('Error: ' + (err.message || err.code)); }
         return;
       }
@@ -6416,7 +6476,7 @@
         document.getElementById('pwCurrent').value = '';
         document.getElementById('pwNew').value = '';
         document.getElementById('pwConfirm').value = '';
-        showToast('Contraseña actualizada ✓');
+        showToast('Contraseña actualizada');
       } catch(err) {
         if (err.code === 'auth/wrong-password') showToast('Contraseña actual incorrecta');
         else showToast('Error: ' + (err.message || err.code));
@@ -6536,7 +6596,7 @@
     function copyCoupon() {
       const code = 'CLUB20DERMA';
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(code).then(() => showToast('Cupón copiado ✓'));
+        navigator.clipboard.writeText(code).then(() => showToast('Cupón copiado'));
       } else {
         showToast('Código: ' + code);
       }
