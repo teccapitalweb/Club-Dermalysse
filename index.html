@@ -4481,7 +4481,7 @@
 
         <!-- Vista de un tema (oculto por defecto) -->
         <div id="foroThreadView" style="display:none;">
-          <button class="foro-back-btn" onclick="backToForoList()">← Volver al foro</button>
+          <button class="foro-back-btn" onclick="backToForoList()">Volver al foro</button>
           <div id="foroThreadContent"></div>
         </div>
 
@@ -6153,9 +6153,19 @@
       }).join('');
     }
 
+    // Mapeo: icono de notificación → clave de toggle
+    const _notifToggleMap = { book:'notif_cursos', play:'notif_vivo', file:'notif_pdfs', pdf:'notif_pdfs', tag:'notif_promos' };
+    let _notifSettings = {}; // se carga en loadNotifSettings
+
     function renderNotifs() {
       const list = document.getElementById('notifList');
-      if (!NOTIFS.length) {
+      // Filtrar según toggles del usuario
+      const filtered = NOTIFS.filter(n => {
+        const key = _notifToggleMap[n.icon];
+        if (key && _notifSettings[key] === false) return false;
+        return true;
+      });
+      if (!filtered.length) {
         list.innerHTML = emptyState('bell', 'Todo al día', 'No tienes notificaciones nuevas. Te avisaremos cuando haya novedades.');
         updateNotifBadge();
         return;
@@ -6170,7 +6180,7 @@
         bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
         pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>'
       };
-      list.innerHTML = NOTIFS.map((n,idx) => `
+      list.innerHTML = filtered.map((n,idx) => `
         <div class="notif-item ${n.unread ? 'unread' : ''}">
           <div class="notif-icon">${iconMap[n.icon] || iconMap.check}</div>
           <div class="notif-body">
@@ -6178,7 +6188,7 @@
             <div class="notif-text">${n.text}</div>
             <div class="notif-time">${n.time}</div>
           </div>
-          <button class="notif-delete" onclick="deleteNotif(${idx})" title="Eliminar">
+          <button class="notif-delete" onclick="deleteNotif(${NOTIFS.indexOf(n)})" title="Eliminar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -6408,6 +6418,8 @@
     async function toggleNotifSetting(el, key) {
       el.classList.toggle('active');
       const val = el.classList.contains('active');
+      _notifSettings[key] = val;
+      renderNotifs(); // Re-filtrar notificaciones al instante
       showToast('Ajuste actualizado');
       try {
         const user = auth.currentUser;
@@ -6422,11 +6434,14 @@
         const doc = await db.collection('users').doc(user.uid).get();
         if (!doc.exists) return;
         const s = (doc.data().settings) || {};
+        _notifSettings = s; // Guardar para filtrado de notificaciones
         const map = { notif_cursos:'toggleCursos', notif_vivo:'toggleVivo', notif_pdfs:'togglePdfs', notif_promos:'togglePromos' };
         for (const [key, id] of Object.entries(map)) {
           const el = document.getElementById(id);
           if (el && s[key] === false) el.classList.remove('active');
         }
+        // Re-renderizar notificaciones con filtros aplicados
+        renderNotifs();
       } catch(e) {}
     }
 
