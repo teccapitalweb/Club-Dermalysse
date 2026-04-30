@@ -5390,7 +5390,7 @@
           const ud = await db.collection('users').doc(user.uid).get();
           if (ud.exists) { safeSet(PROFILE_KEY, JSON.stringify(ud.data())); if(ud.data().gotas!==undefined)safeSet('dermalysse_gotas',String(ud.data().gotas)); }
         }
-        const cols={courses:'dermalysse_sync_courses',webinars:'dermalysse_sync_webinars',pdfs:'dermalysse_sync_pdfs',news:'dermalysse_sync_news',notifs:'dermalysse_sync_notifs',members:'dermalysse_sync_members'};
+        const cols={courses:'dermalysse_sync_courses',webinars:'dermalysse_sync_webinars',pdfs:'dermalysse_sync_pdfs',news:'dermalysse_sync_news',notifications:'dermalysse_sync_notifs',members:'dermalysse_sync_members'};
         for(const[col,lsKey] of Object.entries(cols)){
           const snap=await db.collection(col).get();
           if(!snap.empty){const data=snap.docs.map(d=>({id:d.id,...d.data()}));safeSet(lsKey,JSON.stringify(data));}
@@ -7409,28 +7409,38 @@
 
     // ═══ MODO EXPLORADOR (lock) ═══
     function applyLocks() {
-      // Agregar banner de lock en secciones de contenido
-      const lockViews = ['view-cursos', 'view-webinar', 'view-pdf'];
+      // Banner de Modo Explorador en inicio
+      const inicio = document.getElementById('view-inicio');
+      if (inicio && !inicio.querySelector('.explorer-banner')) {
+        const eb = document.createElement('div');
+        eb.className = 'explorer-banner';
+        eb.style.cssText = 'background:var(--bg-surface);border:2px solid var(--azul-main);border-radius:var(--radius-sm,12px);padding:1.25rem 1.5rem;margin-bottom:1.5rem;';
+        eb.innerHTML = '<div style="display:flex;align-items:center;gap:.75rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--azul-main)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><div><strong style="color:var(--azul-dark);">Modo Explorador</strong><br><span style="font-size:.85rem;color:var(--text-muted);">Estás navegando en modo explorador. Suscríbete para desbloquear todo el contenido del Club.</span></div></div><button class="btn-subscribe" onclick="goTo(\'suscripcion\')" style="max-width:200px;padding:.65rem 1.2rem;font-size:.88rem;margin-top:.75rem;">Ver planes</button>';
+        const header = inicio.querySelector('.view-header');
+        if (header) header.after(eb); else inicio.prepend(eb);
+      }
+
+      // Banner de lock en TODAS las secciones de contenido
+      const lockViews = ['view-biblioteca','view-curso','view-webinar','view-pdf','view-noticias','view-foro','view-logros','view-ruta','view-descuento','view-canal','view-calculadora','view-protocolos','view-atlas','view-ficha'];
       lockViews.forEach(id => {
         const view = document.getElementById(id);
         if (!view) return;
-        // No duplicar banners
         if (view.querySelector('.lock-banner')) return;
         const banner = document.createElement('div');
         banner.className = 'lock-banner';
         banner.innerHTML = '<h3>Contenido exclusivo para miembros</h3><p>Suscríbete para acceder a todos los cursos, webinars y material del Club Dermalysse.</p><button class="btn-subscribe" onclick="goTo(\'suscripcion\')">Ver planes</button>';
         const header = view.querySelector('.view-header');
-        if (header) header.after(banner);
+        if (header) header.after(banner); else view.prepend(banner);
       });
 
       // Blur en las listas de contenido
-      document.querySelectorAll('#courseGrid, #webinarList, #pdfGrid').forEach(el => {
+      document.querySelectorAll('#courseGrid, #webinarList, #pdfGrid, .foro-topics, .noticias-feed, .tools-grid, .logros-grid, .ruta-timeline').forEach(el => {
         el.classList.add('content-locked');
       });
     }
 
     function removeLocks() {
-      document.querySelectorAll('.lock-banner').forEach(el => el.remove());
+      document.querySelectorAll('.lock-banner, .explorer-banner').forEach(el => el.remove());
       document.querySelectorAll('.content-locked').forEach(el => el.classList.remove('content-locked'));
     }
 
