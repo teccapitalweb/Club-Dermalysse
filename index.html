@@ -3900,6 +3900,7 @@
     const firebaseApp = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
   </script>
 </head>
 <body>
@@ -3971,8 +3972,19 @@
             <button type="button" class="btn-primary" onclick="handleLogin(event)">Entrar al club</button>
           </form>
 
-          <div class="auth-hint">
-            <strong>Demo:</strong> Ingresa cualquier correo y cualquier contraseña (mín. 4 caracteres). Los datos no se envían a ningún servidor — se guardan solo en tu navegador.
+          <div style="display:flex;align-items:center;gap:.75rem;margin:1.25rem 0;">
+            <div style="flex:1;height:1px;background:var(--border,#d5cdc0);"></div>
+            <span style="font-size:.82rem;color:var(--text-muted,#9a8e7f);font-weight:500;">o continúa con</span>
+            <div style="flex:1;height:1px;background:var(--border,#d5cdc0);"></div>
+          </div>
+
+          <button type="button" onclick="handleGoogleLogin()" style="width:100%;padding:.85rem 1.5rem;border:1.5px solid var(--border,#d5cdc0);border-radius:var(--radius-sm,12px);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.65rem;font-family:inherit;font-size:.95rem;font-weight:600;color:var(--text-primary,#3d2e1e);transition:all .2s ease;" onmouseover="this.style.borderColor='var(--azul-main,#2e5f7a)';this.style.background='var(--bg-elevated,#faf7f2)'" onmouseout="this.style.borderColor='var(--border,#d5cdc0)';this.style.background='white'">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Continuar con Google
+          </button>
+
+          <div class="auth-hint" style="margin-top:1rem;">
+            Ingresa con tu cuenta registrada o usa Google para acceder al club.
           </div>
 
           <p class="auth-footer">
@@ -5026,47 +5038,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     // ═══ FIRESTORE: Lee datos desde Firebase Cloud Firestore ═══
-    // (Migrado de localStorage — antes usaba SYNC_KEYS)
-    // Referencia rápida a colecciones Firestore
     const FS_COLLECTIONS = {
-      courses: 'courses',
-      webinars: 'webinars',
-      pdfs: 'pdfs',
-      news: 'news',
-      notifs: 'notifications',
-      members: 'members',
-      config: 'config'
+      courses: 'courses', webinars: 'webinars', pdfs: 'pdfs',
+      news: 'news', notifs: 'notifications', members: 'members'
     };
 
-    // Helper: leer colección completa de Firestore
-    async function fsReadCollection(collectionName) {
+    async function fsReadCollection(name) {
       try {
-        const snap = await db.collection(collectionName).get();
+        const snap = await db.collection(name).get();
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      } catch(e) { console.error('Firestore read error:', collectionName, e); return []; }
+      } catch(e) { console.error('Firestore read error:', name, e); return []; }
     }
-
-    // Helper: leer documento de usuario actual
-    async function fsReadUserDoc(subcollection) {
-      try {
-        const user = auth.currentUser;
-        if (!user) return null;
-        const doc = await db.collection('users').doc(user.uid).collection(subcollection).get();
-        return doc.docs.map(d => ({ id: d.id, ...d.data() }));
-      } catch(e) { return null; }
-    }
-
-    // Helper: escribir documento de usuario
-    async function fsWriteUserDoc(path, data) {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-        await db.collection('users').doc(user.uid).collection(path).doc('data').set(data, { merge: true });
-      } catch(e) { console.error('Firestore write error:', e); }
-    }
-
-    // FALLBACK: syncRead para compatibilidad durante migración
-    function syncRead(key) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : null; } catch(e) { return null; } }
 
     // ═══ GOOGLE DRIVE URL TRANSFORMERS ═══
     function driveFileId(url) {
@@ -5095,193 +5077,84 @@
       return id ? 'https://drive.google.com/file/d/' + id + '/preview' : '';
     }
 
-    // Cursos: transformar formato Admin → Club
     // ═══ DATOS GLOBALES (se cargan async desde Firestore) ═══
     let COURSES = [];
     let WEBINARS = [];
     let PDFS = [];
-    let NEWS = [];
-    let NOTIFS = [];
-    let _currentUserProgress = {}; // {courseId: [lessonIds...]}
+    var NEWS = [];
+    let _currentUserProgress = {};
 
-    // ═══ FUNCIÓN PRINCIPAL: Cargar todos los datos desde Firestore ═══
+    // ═══ CARGAR DATOS DESDE FIRESTORE ═══
     async function loadAllDataFromFirestore() {
       try {
-        // Cargar progreso del usuario
         const user = auth.currentUser;
+        // Cargar progreso del usuario
         if (user) {
           try {
-            const progressDoc = await db.collection('users').doc(user.uid).get();
-            const userData = progressDoc.exists ? progressDoc.data() : {};
-            _currentUserProgress = userData.progress || {};
-            // Cargar gotas
-            if (userData.gotas !== undefined) {
-              try { localStorage.setItem('dermalysse_gotas', String(userData.gotas)); } catch(e) {}
-            }
-          } catch(e) { console.error('Error loading user data:', e); }
+            const uDoc = await db.collection('users').doc(user.uid).get();
+            const uData = uDoc.exists ? uDoc.data() : {};
+            _currentUserProgress = uData.progress || {};
+            if (uData.gotas !== undefined) try { localStorage.setItem('dermalysse_gotas', String(uData.gotas)); } catch(e) {}
+          } catch(e) { console.error('Error user data:', e); }
         }
 
-        // Cargar cursos
-        const rawCourses = await fsReadCollection(FS_COLLECTIONS.courses);
-        COURSES = rawCourses.filter(c => c.status === 'published').map(c => {
+        // Cursos
+        const rawC = await fsReadCollection(FS_COLLECTIONS.courses);
+        COURSES = rawC.filter(c => c.status === 'published').map(c => {
           const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
           const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
           const completedLessons = _currentUserProgress[c.id] || [];
           const totalLessons = (c.lessons||[]).length;
-          const completedCount = completedLessons.length;
-          const progress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+          const progress = totalLessons > 0 ? Math.round((completedLessons.length / totalLessons) * 100) : 0;
           return {
             id: c.id, name: c.name,
             cat: (c.cat||'').toLowerCase().replace(/í/g,'i').replace(/é/g,'e'),
-            duration: durText, level: c.level, progress: progress,
+            duration: durText, level: c.level, progress,
             description: c.desc || (c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.'),
             instructor: c.instructor || '', img: c.img || '', temario: c.temario || '',
             lessons: (c.lessons||[]).map((l,i) => ({
               id: i+1, title: l.name, duration: l.dur || '',
               completed: completedLessons.includes(i+1),
               current: !completedLessons.includes(i+1) && (i === 0 || completedLessons.includes(i)),
-              locked: i > 0 && !completedLessons.includes(i),
-              drive: l.drive || ''
+              locked: i > 0 && !completedLessons.includes(i), drive: l.drive || ''
             }))
           };
         });
 
-        // Cargar webinars
-        const rawWebinars = await fsReadCollection(FS_COLLECTIONS.webinars);
-        WEBINARS = rawWebinars.filter(w => w.status === 'scheduled').map(w => {
+        // Webinars
+        const rawW = await fsReadCollection(FS_COLLECTIONS.webinars);
+        WEBINARS = rawW.filter(w => w.status === 'scheduled').map(w => {
           const d = new Date(w.date);
-          return {
-            day: String(d.getDate()),
-            month: d.toLocaleString('es-MX',{month:'short'}).replace('.',''),
-            dateISO: w.date, title: w.title,
-            time: d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
-            duration: w.duration, speaker: w.speaker,
-            live: w.live || '', drive: w.drive || '', img: w.img || ''
-          };
+          return { day: String(d.getDate()), month: d.toLocaleString('es-MX',{month:'short'}).replace('.',''),
+            dateISO: w.date, title: w.title, time: d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
+            duration: w.duration, speaker: w.speaker, live: w.live||'', drive: w.drive||'', img: w.img||'' };
         });
 
-        // Cargar PDFs
-        const rawPdfs = await fsReadCollection(FS_COLLECTIONS.pdfs);
-        PDFS = rawPdfs.map(p => ({
-          name: p.name, pages: p.pages,
-          size: Math.round(p.pages * 0.15 * 10)/10 + ' MB',
-          drive: p.drive || '', img: p.img || ''
-        }));
+        // PDFs
+        const rawP = await fsReadCollection(FS_COLLECTIONS.pdfs);
+        PDFS = rawP.map(p => ({ name: p.name, pages: p.pages, size: Math.round(p.pages*0.15*10)/10+' MB', drive: p.drive||'', img: p.img||'' }));
 
-        // Cargar noticias
-        const rawNews = await fsReadCollection(FS_COLLECTIONS.news);
-        NEWS = rawNews.filter(n => n.status === 'published').map(n => {
+        // Noticias
+        const rawN = await fsReadCollection(FS_COLLECTIONS.news);
+        NEWS = rawN.filter(n => n.status === 'published').map(n => {
           const daysAgo = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
-          return {
-            cat: n.cat, title: n.title, excerpt: n.title,
+          return { cat: n.cat, title: n.title, excerpt: n.title,
             date: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días',
-            author: n.author, img: n.drive || '', isAdmin: true, link: ''
-          };
+            author: n.author, img: n.drive||'', isAdmin: true, link: '' };
         });
 
-        // Cargar notificaciones
-        const rawNotifs = await fsReadCollection(FS_COLLECTIONS.notifs);
-        NOTIFS = rawNotifs.slice(0, 10).map(n => {
+        // Notificaciones
+        const rawNt = await fsReadCollection(FS_COLLECTIONS.notifs);
+        NOTIFS = rawNt.slice(0,10).map(n => {
           const icons = {curso:'book',vivo:'play',pdf:'file',promo:'tag'};
           const daysAgo = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
-          return {
-            unread: daysAgo < 3, icon: icons[n.type] || 'bell',
-            title: n.title, text: n.msg,
-            time: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días'
-          };
+          return { unread: daysAgo < 3, icon: icons[n.type]||'bell', title: n.title, text: n.msg,
+            time: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días' };
         });
 
-        console.log('✅ Datos cargados desde Firestore:', {
-          courses: COURSES.length, webinars: WEBINARS.length,
-          pdfs: PDFS.length, news: NEWS.length, notifs: NOTIFS.length
-        });
-      } catch(e) {
-        console.error('❌ Error cargando datos desde Firestore:', e);
-      }
+        console.log('✅ Datos Firestore:', { courses: COURSES.length, webinars: WEBINARS.length, pdfs: PDFS.length, news: NEWS.length });
+      } catch(e) { console.error('❌ Error Firestore:', e); }
     }
-
-    // ═══ CÓDIGO LEGACY REMOVIDO — datos ahora se cargan async ═══
-    // (Las siguientes líneas fueron reemplazadas por loadAllDataFromFirestore)
-    void function _legacyRemovedPlaceholder() {
-      const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
-      const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
-
-      // Cargar progreso guardado
-      const progressKey = 'dermalysse_progress_' + c.id;
-      let completedLessons = [];
-      try { completedLessons = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
-
-      const totalLessons = (c.lessons||[]).length;
-      const completedCount = completedLessons.length;
-      const progress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
-
-      return {
-        id: c.id,
-        name: c.name,
-        cat: (c.cat||'').toLowerCase().replace(/í/g,'i').replace(/é/g,'e'),
-        duration: durText,
-        level: c.level,
-        progress: progress,
-        description: c.desc || (c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.'),
-        instructor: c.instructor || '',
-        img: c.img || '',
-        temario: c.temario || '',
-        lessons: (c.lessons||[]).map((l,i) => ({
-          id: i+1,
-          title: l.name,
-          duration: l.dur || '',
-          completed: completedLessons.includes(i+1),
-          current: !completedLessons.includes(i+1) && (i === 0 || completedLessons.includes(i)),
-          locked: i > 0 && !completedLessons.includes(i),
-          drive: l.drive || ''
-        }))
-      };
-    });
-
-    // Webinars: transformar formato Admin → Club
-    const _rawWebinars = syncRead(SYNC_KEYS.webinars) || [];
-    const WEBINARS = _rawWebinars.filter(w => w.status === 'scheduled').map(w => {
-      const d = new Date(w.date);
-      return {
-        day: String(d.getDate()),
-        month: d.toLocaleString('es-MX',{month:'short'}).replace('.',''),
-        dateISO: w.date,
-        title: w.title,
-        time: d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
-        duration: w.duration,
-        speaker: w.speaker,
-        live: w.live || '',
-        drive: w.drive || '',
-        img: w.img || ''
-      };
-    });
-
-    // PDFs: transformar formato Admin → Club
-    const _rawPdfs = syncRead(SYNC_KEYS.pdfs) || [];
-    const PDFS = _rawPdfs.map(p => ({
-      name: p.name,
-      pages: p.pages,
-      size: Math.round(p.pages * 0.15 * 10)/10 + ' MB',
-      drive: p.drive || '',
-      img: p.img || ''
-    }));
-
-    // Noticias: Admin + Internet (Google News RSS)
-    var _rawNews = syncRead(SYNC_KEYS.news) || [];
-    var _adminNews = _rawNews.filter(function(n) { return n.status === 'published'; }).map(function(n) {
-      var daysAgo = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
-      return {
-        cat: n.cat,
-        title: n.title,
-        excerpt: n.title,
-        date: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días',
-        author: n.author,
-        img: n.drive || '',
-        isAdmin: true,
-        link: ''
-      };
-    });
-    }(); // fin placeholder legacy
 
     // ─── Fetch noticias de internet (NewsData.io API) ───
     var NEWS_CACHE_KEY = 'dermalysse_news_cache';
@@ -5357,8 +5230,8 @@
         });
     }
 
-    // Notificaciones: ahora se cargan en loadAllDataFromFirestore()
-    // (sección legacy removida)
+    // Notificaciones: se cargan en loadAllDataFromFirestore()
+    let NOTIFS = [];
 
     /* ═══ LOGROS (demo — modifica este array para personalizar) ═══ */
     const LOGROS = [
@@ -5462,46 +5335,55 @@
       const pwEl = document.getElementById('loginPassword');
       const email = (emailEl.value || '').trim();
       const pw = pwEl.value || '';
-
-      if (!email || !email.includes('@')) {
-        emailEl.style.borderColor = '#e11d48';
-        emailEl.focus();
-        return false;
-      }
-      if (pw.length < 6) {
-        pwEl.style.borderColor = '#e11d48';
-        showToast('La contraseña debe tener al menos 6 caracteres');
-        pwEl.focus();
-        return false;
-      }
-
+      if (!email || !email.includes('@')) { emailEl.style.borderColor = '#e11d48'; emailEl.focus(); return false; }
+      if (pw.length < 6) { pwEl.style.borderColor = '#e11d48'; showToast('Mínimo 6 caracteres'); pwEl.focus(); return false; }
       try {
-        // ═══ FIREBASE AUTH: Login real ═══
-        const userCredential = await auth.signInWithEmailAndPassword(email, pw);
-        const user = userCredential.user;
-
-        // Cargar perfil desde Firestore
-        const profileDoc = await db.collection('users').doc(user.uid).get();
-        const profile = profileDoc.exists ? profileDoc.data() : { name: 'Miembro', lastname: '', email, phone: '', city: '', bio: '' };
+        const cred = await auth.signInWithEmailAndPassword(email, pw);
+        const profileDoc = await db.collection('users').doc(cred.user.uid).get();
+        const profile = profileDoc.exists ? profileDoc.data() : { name:'Miembro', lastname:'', email, phone:'', city:'', bio:'' };
         safeSet(PROFILE_KEY, JSON.stringify(profile));
-        safeSet(AUTH_KEY, JSON.stringify({ email: user.email, uid: user.uid, loggedAt: Date.now() }));
-
-        // Cargar datos y entrar
+        safeSet(AUTH_KEY, JSON.stringify({ email: cred.user.email, uid: cred.user.uid, loggedAt: Date.now() }));
         await loadAllDataFromFirestore();
         enterApp();
-      } catch (err) {
+      } catch(err) {
         console.error('Login error:', err);
-        if (err.code === 'auth/user-not-found') {
-          showToast('No existe una cuenta con ese correo');
-        } else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-          showToast('Contraseña incorrecta');
-        } else if (err.code === 'auth/invalid-email') {
-          showToast('Correo no válido');
-        } else {
-          showToast('Error al iniciar sesión: ' + (err.message || err.code));
-        }
+        if (err.code === 'auth/user-not-found') showToast('No existe una cuenta con ese correo');
+        else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') showToast('Contraseña incorrecta');
+        else showToast('Error: ' + (err.message || err.code));
       }
       return false;
+    }
+
+    // ═══ GOOGLE SIGN-IN (Popup) ═══
+    async function handleGoogleLogin() {
+      try {
+        const result = await auth.signInWithPopup(googleProvider);
+        const user = result.user;
+        // Verificar si ya tiene perfil en Firestore
+        const profileDoc = await db.collection('users').doc(user.uid).get();
+        let profile;
+        if (profileDoc.exists) {
+          profile = profileDoc.data();
+        } else {
+          // Primera vez con Google — crear perfil
+          const nameParts = (user.displayName || 'Miembro').split(' ');
+          profile = { name: nameParts[0], lastname: nameParts.slice(1).join(' '), email: user.email, phone: '', city: '', bio: '', gotas: 0, streak: 0, progress: {} };
+          await db.collection('users').doc(user.uid).set(profile);
+          // Registrar como miembro
+          await db.collection('members').add({
+            uid: user.uid, name: user.displayName || 'Miembro', email: user.email,
+            plan: 'Premium', status: 'active', joined: new Date().toISOString().split('T')[0], courses: 0
+          });
+        }
+        safeSet(PROFILE_KEY, JSON.stringify(profile));
+        safeSet(AUTH_KEY, JSON.stringify({ email: user.email, uid: user.uid, loggedAt: Date.now() }));
+        await loadAllDataFromFirestore();
+        enterApp();
+        showToast('¡Bienvenido/a, ' + (profile.name || 'Miembro') + '!');
+      } catch(err) {
+        console.error('Google login error:', err);
+        if (err.code !== 'auth/popup-closed-by-user') showToast('Error con Google: ' + (err.message || err.code));
+      }
     }
 
     async function handleRegister(e) {
@@ -5513,65 +5395,31 @@
       const pw = document.getElementById('regPassword').value || '';
       const termsAccepted = document.getElementById('acceptTerms').checked;
       const termsWrap = document.getElementById('termsCheck');
-
       termsWrap.classList.remove('error');
-
       if (!name || !lastname || !email || pw.length < 6) {
-        [['regName',name],['regLastname',lastname],['regEmail',email]].forEach(([id,v]) => {
-          if (!v) document.getElementById(id).style.borderColor = '#e11d48';
-        });
-        if (pw.length < 6) {
-          document.getElementById('regPassword').style.borderColor = '#e11d48';
-          showToast('La contraseña debe tener al menos 6 caracteres');
-        }
+        [['regName',name],['regLastname',lastname],['regEmail',email]].forEach(([id,v]) => { if (!v) document.getElementById(id).style.borderColor = '#e11d48'; });
+        if (pw.length < 6) { document.getElementById('regPassword').style.borderColor = '#e11d48'; showToast('Mínimo 6 caracteres'); }
         return false;
       }
-
-      if (!termsAccepted) {
-        termsWrap.classList.add('error');
-        showToast('Debes aceptar los Términos y Condiciones');
-        return false;
-      }
-
+      if (!termsAccepted) { termsWrap.classList.add('error'); showToast('Debes aceptar los Términos y Condiciones'); return false; }
       try {
-        // ═══ FIREBASE AUTH: Registro real ═══
-        const userCredential = await auth.createUserWithEmailAndPassword(email, pw);
-        const user = userCredential.user;
-
-        // Guardar perfil en Firestore
-        const profile = { name, lastname, email, phone, city: '', bio: '', gotas: 0, streak: 0, progress: {} };
-        await db.collection('users').doc(user.uid).set(profile);
-
-        // Registrar como miembro en Firestore
+        const cred = await auth.createUserWithEmailAndPassword(email, pw);
+        const profile = { name, lastname, email, phone, city:'', bio:'', gotas: 0, streak: 0, progress: {} };
+        await db.collection('users').doc(cred.user.uid).set(profile);
         await db.collection('members').add({
-          uid: user.uid,
-          name: name + ' ' + lastname,
-          email: email,
-          plan: 'Premium',
-          status: 'active',
-          joined: new Date().toISOString().split('T')[0],
-          courses: 0
+          uid: cred.user.uid, name: name + ' ' + lastname, email,
+          plan: 'Premium', status: 'active', joined: new Date().toISOString().split('T')[0], courses: 0
         });
-
-        // Guardar perfil local
         safeSet(PROFILE_KEY, JSON.stringify(profile));
-        safeSet(AUTH_KEY, JSON.stringify({ email: user.email, uid: user.uid, loggedAt: Date.now() }));
-
-        // Cargar datos y entrar
+        safeSet(AUTH_KEY, JSON.stringify({ email, uid: cred.user.uid, loggedAt: Date.now() }));
         await loadAllDataFromFirestore();
         enterApp();
         showToast('¡Bienvenido/a al Club Dermalysse!');
-      } catch (err) {
+      } catch(err) {
         console.error('Register error:', err);
-        if (err.code === 'auth/email-already-in-use') {
-          showToast('Ya existe una cuenta con ese correo');
-        } else if (err.code === 'auth/weak-password') {
-          showToast('La contraseña es muy débil (mínimo 6 caracteres)');
-        } else if (err.code === 'auth/invalid-email') {
-          showToast('Correo no válido');
-        } else {
-          showToast('Error al crear cuenta: ' + (err.message || err.code));
-        }
+        if (err.code === 'auth/email-already-in-use') showToast('Ya existe una cuenta con ese correo');
+        else if (err.code === 'auth/weak-password') showToast('Contraseña muy débil (mínimo 6 caracteres)');
+        else showToast('Error: ' + (err.message || err.code));
       }
       return false;
     }
@@ -5666,14 +5514,9 @@
 
     async function logout() {
       if (!confirm('¿Cerrar sesión?')) return;
-      try {
-        await auth.signOut();
-      } catch(e) { console.error('Logout error:', e); }
-      safeRemove(AUTH_KEY);
-      safeRemove(PROFILE_KEY);
-      // Limpiar datos globales
-      COURSES = []; WEBINARS = []; PDFS = []; NEWS = []; NOTIFS = [];
-      _currentUserProgress = {};
+      try { await auth.signOut(); } catch(e) {}
+      safeRemove(AUTH_KEY); safeRemove(PROFILE_KEY);
+      COURSES=[]; WEBINARS=[]; PDFS=[]; NEWS=[]; NOTIFS=[]; _currentUserProgress={};
       document.getElementById('appScreen').classList.remove('active');
       document.getElementById('authScreen').classList.add('active');
       switchTab('login');
@@ -6049,22 +5892,12 @@
     }
 
     async function markLessonComplete(courseId, lessonId) {
-      // Leer progreso desde memoria (ya cargado de Firestore)
       let completed = _currentUserProgress[courseId] || [];
 
       if (!completed.includes(lessonId)) {
         completed.push(lessonId);
-        // Guardar progreso en Firestore
         _currentUserProgress[courseId] = completed;
-        try {
-          const user = auth.currentUser;
-          if (user) {
-            await db.collection('users').doc(user.uid).set(
-              { progress: _currentUserProgress },
-              { merge: true }
-            );
-          }
-        } catch(e) { console.error('Error guardando progreso:', e); }
+        try { const u = auth.currentUser; if(u) await db.collection('users').doc(u.uid).set({progress:_currentUserProgress},{merge:true}); } catch(e) {}
 
         const course = COURSES.find(c => c.id === courseId);
         if (course) {
@@ -6637,7 +6470,6 @@
 
     // ─── 7. SISTEMA DE GOTAS ───
     const GOTAS_KEY = 'dermalysse_gotas';
-    // Nota: Las gotas también se sincronizan con Firestore /users/{uid}/gotas
     const GOTAS_LOG_KEY = 'dermalysse_gotas_log';
 
     function getGotas() {
@@ -6652,11 +6484,7 @@
       const current = getGotas();
       const newTotal = current + amount;
       safeSet(GOTAS_KEY, String(newTotal));
-      // Sync gotas con Firestore
-      try {
-        const user = auth.currentUser;
-        if (user) db.collection('users').doc(user.uid).set({ gotas: newTotal }, { merge: true });
-      } catch(e) {}
+      try { const u = auth.currentUser; if(u) db.collection('users').doc(u.uid).set({gotas:newTotal},{merge:true}); } catch(e) {}
 
       const log = getGotasLog();
       log.unshift({ amount, reason, date: new Date().toLocaleDateString('es-MX') });
@@ -7048,31 +6876,20 @@
     // ─── Init herramientas al entrar ───
     // Atlas se renderiza al navegar
 
-    // ─── AUTO-LOGIN CON FIREBASE (debe ser lo último) ───
+    // ─── AUTO-LOGIN CON FIREBASE ───
     auth.onAuthStateChanged(async function(user) {
       if (user) {
-        // Usuario autenticado con Firebase
         console.log('✅ Firebase Auth: sesión activa -', user.email);
-
-        // Cargar perfil desde Firestore
         try {
-          const profileDoc = await db.collection('users').doc(user.uid).get();
-          if (profileDoc.exists) {
-            safeSet(PROFILE_KEY, JSON.stringify(profileDoc.data()));
-          }
-        } catch(e) { console.error('Error cargando perfil:', e); }
-
+          const pDoc = await db.collection('users').doc(user.uid).get();
+          if (pDoc.exists) safeSet(PROFILE_KEY, JSON.stringify(pDoc.data()));
+        } catch(e) {}
         safeSet(AUTH_KEY, JSON.stringify({ email: user.email, uid: user.uid, loggedAt: Date.now() }));
-
-        // Cargar todos los datos desde Firestore
         await loadAllDataFromFirestore();
-
-        // Mostrar la app
         document.getElementById('authScreen').classList.remove('active');
         document.getElementById('appScreen').classList.add('active');
         enterApp();
       } else {
-        // No hay sesión — mostrar pantalla de auth
         console.log('ℹ️ Firebase Auth: sin sesión');
         document.getElementById('appScreen').classList.remove('active');
         document.getElementById('authScreen').classList.add('active');
