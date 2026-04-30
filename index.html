@@ -3882,6 +3882,41 @@
       color: var(--azul-dark);
     }
 
+
+    /* ═══ FORO DINÁMICO ═══ */
+    .foro-create-form { background: var(--bg-surface); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm); padding: 1.5rem; margin-bottom: 1.5rem; }
+    .foro-create-form select, .foro-create-form input, .foro-create-form textarea { width: 100%; padding: .7rem 1rem; border: 1.5px solid var(--border-soft); border-radius: 10px; font-family: inherit; font-size: .92rem; background: var(--bg-main); color: var(--text-primary); margin-bottom: .75rem; }
+    .foro-create-form textarea { min-height: 80px; resize: vertical; }
+    .foro-btn-row { display: flex; gap: .5rem; justify-content: flex-end; margin-top: .5rem; }
+    .foro-btn-cancel { padding: .55rem 1.2rem; border: 1.5px solid var(--border); border-radius: 10px; background: none; cursor: pointer; font-family: inherit; font-size: .88rem; color: var(--text-muted); }
+    .foro-btn-submit { padding: .55rem 1.4rem; border: none; border-radius: 10px; background: var(--azul-main); color: white; cursor: pointer; font-family: inherit; font-size: .88rem; font-weight: 600; }
+    .foro-thread { background: var(--bg-surface); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm); padding: 1.5rem; margin-bottom: 1rem; }
+    .foro-thread-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: .5rem; }
+    .foro-thread-body { font-size: .93rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; }
+    .foro-thread-meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-soft); }
+    .foro-reply { padding: .85rem 0; border-bottom: 1px solid var(--border-soft); display: flex; gap: .75rem; }
+    .foro-reply:last-child { border-bottom: none; }
+    .foro-reply-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--azul-ghost); color: var(--azul-dark); display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+    .foro-reply-body { flex: 1; }
+    .foro-reply-author { font-size: .85rem; font-weight: 600; color: var(--text-primary); }
+    .foro-reply-text { font-size: .9rem; color: var(--text-secondary); margin-top: .25rem; line-height: 1.5; }
+    .foro-reply-time { font-size: .78rem; color: var(--text-muted); margin-top: .25rem; }
+    .foro-reply-input { display: flex; gap: .5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }
+    .foro-reply-input textarea { flex: 1; padding: .6rem .85rem; border: 1.5px solid var(--border-soft); border-radius: 10px; font-family: inherit; font-size: .88rem; resize: none; min-height: 44px; background: var(--bg-main); color: var(--text-primary); }
+    .foro-back-btn { background: none; border: none; cursor: pointer; color: var(--azul-main); font-size: .9rem; font-weight: 600; font-family: inherit; padding: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: .3rem; }
+
+    /* ═══ NOTIFICACIONES: botón eliminar ═══ */
+    .notif-item { position: relative; }
+    .notif-delete { position: absolute; top: .5rem; right: .5rem; background: none; border: none; cursor: pointer; color: var(--text-muted); opacity: 0; transition: opacity .2s; padding: .25rem; }
+    .notif-item:hover .notif-delete { opacity: 1; }
+    .notif-delete:hover { color: #e11d48; }
+
+    /* ═══ CONFIG: cambiar contraseña modal ═══ */
+    .pw-change-form { margin-top: 1rem; }
+    .pw-change-form .form-field { margin-bottom: .75rem; }
+    .pw-change-form label { font-size: .85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: .35rem; display: block; }
+    .pw-change-form input { width: 100%; padding: .65rem 1rem; border: 1.5px solid var(--border-soft); border-radius: 10px; font-family: inherit; font-size: .9rem; background: var(--bg-main); color: var(--text-primary); }
+
   </style>
 
   <!-- FIREBASE SDK -->
@@ -4422,87 +4457,31 @@
           </div>
         </div>
 
-        <div class="foro-topics">
-          <div class="foro-topic" onclick="showToast('Abriendo tema…')">
-            <div class="foro-avatar" style="background:var(--azul-dark);">AM</div>
-            <div class="foro-topic-body">
-              <div class="foro-topic-title">¿Qué protector solar recomiendan para piel grasa?</div>
-              <div class="foro-topic-meta">
-                <span>Alex Morales</span>
-                <span class="foro-tag blue">Consulta</span>
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Hace 2 horas
-                </span>
-              </div>
-            </div>
-            <div class="foro-stats">
-              <div class="foro-stat-num">8</div>
-              <div class="foro-stat-label">respuestas</div>
-            </div>
+        <!-- Formulario crear tema (oculto por defecto) -->
+        <div id="foroCreateForm" class="foro-create-form" style="display:none;">
+          <input type="text" id="foroNewTitle" placeholder="Título del tema…" maxlength="120">
+          <select id="foroNewTag">
+            <option value="Consulta">Consulta</option>
+            <option value="Experiencia">Experiencia</option>
+            <option value="Curso">Relacionado a curso</option>
+            <option value="General">General</option>
+          </select>
+          <textarea id="foroNewBody" placeholder="Describe tu pregunta o experiencia…"></textarea>
+          <div class="foro-btn-row">
+            <button class="foro-btn-cancel" onclick="document.getElementById('foroCreateForm').style.display='none'">Cancelar</button>
+            <button class="foro-btn-submit" onclick="submitForumTopic()">Publicar</button>
           </div>
+        </div>
 
-          <div class="foro-topic" onclick="showToast('Abriendo tema…')">
-            <div class="foro-avatar" style="background:#5a7a3a;">DR</div>
-            <div class="foro-topic-body">
-              <div class="foro-topic-title">Mi experiencia con el peeling de ácido mandélico</div>
-              <div class="foro-topic-meta">
-                <span>Daniela Ríos</span>
-                <span class="foro-tag green">Experiencia</span>
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Hace 1 día
-                </span>
-              </div>
-            </div>
-            <div class="foro-stats">
-              <div class="foro-stat-num">14</div>
-              <div class="foro-stat-label">respuestas</div>
-            </div>
-          </div>
+        <!-- Vista de un tema (oculto por defecto) -->
+        <div id="foroThreadView" style="display:none;">
+          <button class="foro-back-btn" onclick="backToForoList()">← Volver al foro</button>
+          <div id="foroThreadContent"></div>
+        </div>
 
-          <div class="foro-topic" onclick="showToast('Abriendo tema…')">
-            <div class="foro-avatar" style="background:#9a6530;">CM</div>
-            <div class="foro-topic-body">
-              <div class="foro-topic-title">¿Alguien ha probado el nuevo módulo de Hidrafacial?</div>
-              <div class="foro-topic-meta">
-                <span>Carlos Méndez</span>
-                <span class="foro-tag amber">Curso</span>
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Hace 3 días
-                </span>
-              </div>
-            </div>
-            <div class="foro-stats">
-              <div class="foro-stat-num">5</div>
-              <div class="foro-stat-label">respuestas</div>
-            </div>
-          </div>
-
-          <div class="foro-topic" onclick="showToast('Abriendo tema…')">
-            <div class="foro-avatar" style="background:var(--azul-main);">LV</div>
-            <div class="foro-topic-body">
-              <div class="foro-topic-title">Protocolo para manchas post-inflamatorias en piel morena</div>
-              <div class="foro-topic-meta">
-                <span>Laura Valdés</span>
-                <span class="foro-tag blue">Consulta</span>
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Hace 5 días
-                </span>
-              </div>
-            </div>
-            <div class="foro-stats">
-              <div class="foro-stat-num">22</div>
-              <div class="foro-stat-label">respuestas</div>
-            </div>
-          </div>
-
-          <div class="foro-cta" onclick="showToast('Crear tema · próximamente')">
-            <div class="foro-cta-text">+ Crear un nuevo tema</div>
-            <div class="foro-cta-sub">Comparte tu pregunta o experiencia con la comunidad</div>
-          </div>
+        <!-- Lista de temas -->
+        <div class="foro-topics" id="foroTopicsList">
+          <div style="text-align:center;padding:2rem;color:var(--text-muted);">Cargando temas…</div>
         </div>
       </section>
 
@@ -4646,28 +4625,28 @@
               <h4>Nuevos cursos</h4>
               <p>Recibe aviso cuando se suba un nuevo curso</p>
             </div>
-            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            <div class="toggle active" id="toggleCursos" onclick="toggleNotifSetting(this,'notif_cursos')"></div>
           </div>
           <div class="settings-row">
             <div class="settings-info">
               <h4>Clases en vivo</h4>
               <p>Recordatorio 30 minutos antes de cada sesión</p>
             </div>
-            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            <div class="toggle active" id="toggleVivo" onclick="toggleNotifSetting(this,'notif_vivo')"></div>
           </div>
           <div class="settings-row">
             <div class="settings-info">
               <h4>Nuevos PDFs</h4>
               <p>Aviso cuando se publique nuevo material</p>
             </div>
-            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            <div class="toggle active" id="togglePdfs" onclick="toggleNotifSetting(this,'notif_pdfs')"></div>
           </div>
           <div class="settings-row">
             <div class="settings-info">
               <h4>Promociones</h4>
               <p>Ofertas especiales y descuentos del Club</p>
             </div>
-            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            <div class="toggle active" id="togglePromos" onclick="toggleNotifSetting(this,'notif_promos')"></div>
           </div>
         </div>
 
@@ -4694,7 +4673,16 @@
               <h4>Cambiar contraseña</h4>
               <p>Actualiza tu contraseña periódicamente</p>
             </div>
-            <button class="btn-secondary" onclick="showToast('Funcionalidad en backend real')">Cambiar</button>
+            <button class="btn-secondary" id="btnChangePassword" onclick="showChangePasswordForm()">Cambiar</button>
+          </div>
+          <div id="changePasswordForm" class="pw-change-form" style="display:none;">
+            <div class="form-field"><label>Contraseña actual</label><input type="password" id="pwCurrent" placeholder="••••••••"></div>
+            <div class="form-field"><label>Nueva contraseña (mín. 6 caracteres)</label><input type="password" id="pwNew" placeholder="••••••••"></div>
+            <div class="form-field"><label>Confirmar nueva contraseña</label><input type="password" id="pwConfirm" placeholder="••••••••"></div>
+            <div style="display:flex;gap:.5rem;margin-top:.5rem;">
+              <button class="btn-secondary" onclick="document.getElementById('changePasswordForm').style.display='none'">Cancelar</button>
+              <button class="btn-primary" style="max-width:200px;" onclick="doChangePassword()">Guardar contraseña</button>
+            </div>
           </div>
         </div>
 
@@ -5448,7 +5436,9 @@
       try { renderPdfs(); } catch(e) { console.error('renderPdfs:', e); }
       try { renderNews(); } catch(e) { console.error('renderNews:', e); }
       try { fetchInternetNews(); } catch(e) { console.error('fetchInternetNews:', e); }
-      try { renderNotifs(); } catch(e) { console.error('renderNotifs:', e); }
+      try { renderNotifs(); autoCleanNotifs(); } catch(e) { console.error('renderNotifs:', e); }
+      try { renderForo(); } catch(e) { console.error('renderForo:', e); }
+      try { loadNotifSettings(); } catch(e) { console.error('loadNotifSettings:', e); }
       try { startWebinarCountdown(); } catch(e) { console.error('startWebinarCountdown:', e); }
       try { renderLogros(); } catch(e) { console.error('renderLogros:', e); }
       try { updateStreak(); } catch(e) { console.error('updateStreak:', e); }
@@ -5553,7 +5543,7 @@
       document.getElementById('pBio').value = profile.bio || '';
     }
 
-    function saveProfile(e) {
+    async function saveProfile(e) {
       e.preventDefault();
       const profile = {
         name: document.getElementById('pName').value.trim(),
@@ -5564,6 +5554,11 @@
         bio: document.getElementById('pBio').value.trim()
       };
       safeSet(PROFILE_KEY, JSON.stringify(profile));
+      // Guardar en Firestore
+      try {
+        const user = auth.currentUser;
+        if (user) await db.collection('users').doc(user.uid).set(profile, { merge: true });
+      } catch(e) { console.error('Error guardando perfil:', e); }
       hydrateProfile();
       showToast('Perfil actualizado ✓');
       return false;
@@ -5575,6 +5570,7 @@
       window.scrollTo({ top: 0, behavior: 'instant' });
       closeSidebar();
       if (view === 'atlas') try { renderAtlas(); } catch(e) {}
+      if (view === 'foro') try { renderForo(); } catch(e) {}
     }
 
     function openSidebar() {
@@ -6168,7 +6164,7 @@
         bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
         pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>'
       };
-      list.innerHTML = NOTIFS.map(n => `
+      list.innerHTML = NOTIFS.map((n,idx) => `
         <div class="notif-item ${n.unread ? 'unread' : ''}">
           <div class="notif-icon">${iconMap[n.icon] || iconMap.check}</div>
           <div class="notif-body">
@@ -6176,6 +6172,9 @@
             <div class="notif-text">${n.text}</div>
             <div class="notif-time">${n.time}</div>
           </div>
+          <button class="notif-delete" onclick="deleteNotif(${idx})" title="Eliminar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       `).join('');
       updateNotifBadge();
@@ -6189,10 +6188,278 @@
       else { badge.textContent = unread; badge.style.display = ''; dot.style.display = ''; }
     }
 
-    function markAllRead() {
+    async function markAllRead() {
       NOTIFS.forEach(n => n.unread = false);
       renderNotifs();
       showToast('Todas marcadas como leídas');
+      // Persistir en Firestore
+      try {
+        const user = auth.currentUser;
+        if (user) await db.collection('users').doc(user.uid).set({ _allNotifsRead: true, _notifsReadAt: Date.now() }, { merge: true });
+      } catch(e) {}
+    }
+
+
+    // ═══════════════════════════════════════════
+    // FORO FUNCIONAL (Firestore)
+    // ═══════════════════════════════════════════
+    let _foroTopics = [];
+
+    async function renderForo() {
+      const list = document.getElementById('foroTopicsList');
+      document.getElementById('foroThreadView').style.display = 'none';
+      list.style.display = '';
+      try {
+        const snap = await db.collection('forum').orderBy('createdAt','desc').get();
+        _foroTopics = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch(e) { console.error('Foro load error:', e); }
+
+      if (!_foroTopics.length) {
+        list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Aún no hay temas. ¡Sé el primero en publicar!</div>';
+      } else {
+        const tagColors = { Consulta:'blue', Experiencia:'green', Curso:'amber', General:'' };
+        list.innerHTML = _foroTopics.map(t => {
+          const initials = (t.authorName||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          const ago = _timeAgo(t.createdAt);
+          const replies = t.replyCount || 0;
+          const tagClass = tagColors[t.tag] || '';
+          return `<div class="foro-topic" onclick="viewForumTopic('${t.id}')">
+            <div class="foro-avatar" style="background:var(--azul-dark);">${initials}</div>
+            <div class="foro-topic-body">
+              <div class="foro-topic-title">${_esc(t.title)}</div>
+              <div class="foro-topic-meta">
+                <span>${_esc(t.authorName)}</span>
+                <span class="foro-tag ${tagClass}">${_esc(t.tag)}</span>
+                <span>${ago}</span>
+              </div>
+            </div>
+            <div class="foro-stats"><div class="foro-stat-num">${replies}</div><div class="foro-stat-label">respuestas</div></div>
+          </div>`;
+        }).join('');
+      }
+      list.innerHTML += `<div class="foro-cta" onclick="showCreateTopicForm()"><div class="foro-cta-text">+ Crear un nuevo tema</div><div class="foro-cta-sub">Comparte tu pregunta o experiencia con la comunidad</div></div>`;
+    }
+
+    function showCreateTopicForm() {
+      document.getElementById('foroCreateForm').style.display = '';
+      document.getElementById('foroNewTitle').focus();
+    }
+
+    async function submitForumTopic() {
+      const title = document.getElementById('foroNewTitle').value.trim();
+      const tag = document.getElementById('foroNewTag').value;
+      const body = document.getElementById('foroNewBody').value.trim();
+      if (!title) { showToast('Escribe un título'); return; }
+      if (!body) { showToast('Escribe el contenido'); return; }
+      try {
+        const user = auth.currentUser;
+        const profile = JSON.parse(safeGet(PROFILE_KEY) || '{}');
+        await db.collection('forum').add({
+          title, tag, body,
+          authorUid: user.uid,
+          authorName: (profile.name||'') + ' ' + (profile.lastname||''),
+          createdAt: Date.now(),
+          replyCount: 0
+        });
+        document.getElementById('foroCreateForm').style.display = 'none';
+        document.getElementById('foroNewTitle').value = '';
+        document.getElementById('foroNewBody').value = '';
+        showToast('Tema publicado ✓');
+        renderForo();
+      } catch(e) { showToast('Error: ' + e.message); }
+    }
+
+    async function viewForumTopic(topicId) {
+      document.getElementById('foroTopicsList').style.display = 'none';
+      document.getElementById('foroCreateForm').style.display = 'none';
+      const view = document.getElementById('foroThreadView');
+      const content = document.getElementById('foroThreadContent');
+      view.style.display = '';
+      content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Cargando…</div>';
+
+      try {
+        const doc = await db.collection('forum').doc(topicId).get();
+        if (!doc.exists) { content.innerHTML = 'Tema no encontrado'; return; }
+        const t = doc.data();
+        const initials = (t.authorName||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+        // Cargar respuestas
+        const repliesSnap = await db.collection('forum').doc(topicId).collection('replies').orderBy('createdAt','asc').get();
+        const replies = repliesSnap.docs.map(d => d.data());
+
+        let repliesHtml = replies.map(r => {
+          const ri = (r.authorName||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          return `<div class="foro-reply"><div class="foro-reply-avatar">${ri}</div><div class="foro-reply-body"><div class="foro-reply-author">${_esc(r.authorName)}</div><div class="foro-reply-text">${_esc(r.text)}</div><div class="foro-reply-time">${_timeAgo(r.createdAt)}</div></div></div>`;
+        }).join('');
+
+        content.innerHTML = `
+          <div class="foro-thread">
+            <div class="foro-thread-title">${_esc(t.title)}</div>
+            <div class="foro-thread-meta">${_esc(t.authorName)} · ${_timeAgo(t.createdAt)} · <span class="foro-tag ${t.tag==='Consulta'?'blue':t.tag==='Experiencia'?'green':t.tag==='Curso'?'amber':''}">${_esc(t.tag)}</span></div>
+            <div class="foro-thread-body">${_esc(t.body).replace(/\n/g,'<br>')}</div>
+            <div id="foroReplies">${repliesHtml || '<div style="color:var(--text-muted);font-size:.9rem;">Aún no hay respuestas.</div>'}</div>
+            <div class="foro-reply-input">
+              <textarea id="foroReplyText" placeholder="Escribe tu respuesta…" rows="2"></textarea>
+              <button class="foro-btn-submit" onclick="submitReply('${topicId}')" style="align-self:flex-end;white-space:nowrap;">Responder</button>
+            </div>
+          </div>`;
+      } catch(e) { content.innerHTML = 'Error: ' + e.message; }
+    }
+
+    async function submitReply(topicId) {
+      const text = document.getElementById('foroReplyText').value.trim();
+      if (!text) { showToast('Escribe algo'); return; }
+      try {
+        const user = auth.currentUser;
+        const profile = JSON.parse(safeGet(PROFILE_KEY) || '{}');
+        await db.collection('forum').doc(topicId).collection('replies').add({
+          text, authorUid: user.uid,
+          authorName: (profile.name||'') + ' ' + (profile.lastname||''),
+          createdAt: Date.now()
+        });
+        // Incrementar contador
+        await db.collection('forum').doc(topicId).update({ replyCount: firebase.firestore.FieldValue.increment(1) });
+        showToast('Respuesta publicada ✓');
+        viewForumTopic(topicId);
+      } catch(e) { showToast('Error: ' + e.message); }
+    }
+
+    function backToForoList() {
+      document.getElementById('foroThreadView').style.display = 'none';
+      document.getElementById('foroTopicsList').style.display = '';
+      renderForo();
+    }
+
+    function _timeAgo(ts) {
+      if (!ts) return '';
+      const diff = Math.floor((Date.now() - ts) / 1000);
+      if (diff < 60) return 'Ahora';
+      if (diff < 3600) return 'Hace ' + Math.floor(diff/60) + ' min';
+      if (diff < 86400) return 'Hace ' + Math.floor(diff/3600) + ' h';
+      const days = Math.floor(diff/86400);
+      if (days === 1) return 'Ayer';
+      return 'Hace ' + days + ' días';
+    }
+
+    function _esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+    // ═══════════════════════════════════════════
+    // CONFIG: Toggles funcionales + cambiar contraseña
+    // ═══════════════════════════════════════════
+    async function toggleNotifSetting(el, key) {
+      el.classList.toggle('active');
+      const val = el.classList.contains('active');
+      try {
+        const user = auth.currentUser;
+        if (user) await db.collection('users').doc(user.uid).set({ settings: { [key]: val } }, { merge: true });
+      } catch(e) { console.error('Toggle save error:', e); }
+    }
+
+    async function loadNotifSettings() {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (!doc.exists) return;
+        const s = (doc.data().settings) || {};
+        const map = { notif_cursos:'toggleCursos', notif_vivo:'toggleVivo', notif_pdfs:'togglePdfs', notif_promos:'togglePromos' };
+        for (const [key, id] of Object.entries(map)) {
+          const el = document.getElementById(id);
+          if (el && s[key] === false) el.classList.remove('active');
+        }
+      } catch(e) {}
+    }
+
+    function showChangePasswordForm() {
+      const form = document.getElementById('changePasswordForm');
+      form.style.display = form.style.display === 'none' ? '' : 'none';
+      // Ocultar campo "contraseña actual" para Google users
+      const user = auth.currentUser;
+      const isGoogleOnly = user && user.providerData && user.providerData.some(p => p.providerId === 'google.com') && !user.providerData.some(p => p.providerId === 'password');
+      const pwCurrentField = document.getElementById('pwCurrent').closest('.form-field');
+      if (pwCurrentField) pwCurrentField.style.display = isGoogleOnly ? 'none' : '';
+    }
+
+    async function doChangePassword() {
+      const user = auth.currentUser;
+      // Detectar si el usuario entró con Google
+      const isGoogleUser = user.providerData && user.providerData.some(p => p.providerId === 'google.com');
+      const hasPassword = user.providerData && user.providerData.some(p => p.providerId === 'password');
+
+      const current = document.getElementById('pwCurrent').value;
+      const newPw = document.getElementById('pwNew').value;
+      const confirmPw = document.getElementById('pwConfirm').value;
+
+      if (isGoogleUser && !hasPassword) {
+        // Google-only user: crear contraseña nueva (no necesita la actual)
+        if (newPw.length < 6) { showToast('Mínimo 6 caracteres'); return; }
+        if (newPw !== confirmPw) { showToast('Las contraseñas no coinciden'); return; }
+        try {
+          await user.updatePassword(newPw);
+          document.getElementById('changePasswordForm').style.display = 'none';
+          document.getElementById('pwNew').value = '';
+          document.getElementById('pwConfirm').value = '';
+          showToast('Contraseña creada ✓ Ahora puedes entrar con email + contraseña también');
+        } catch(err) { showToast('Error: ' + (err.message || err.code)); }
+        return;
+      }
+
+      // Email user: requiere contraseña actual
+      if (!current) { showToast('Ingresa tu contraseña actual'); return; }
+      if (newPw.length < 6) { showToast('Mínimo 6 caracteres'); return; }
+      if (newPw !== confirmPw) { showToast('Las contraseñas no coinciden'); return; }
+      try {
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(newPw);
+        document.getElementById('changePasswordForm').style.display = 'none';
+        document.getElementById('pwCurrent').value = '';
+        document.getElementById('pwNew').value = '';
+        document.getElementById('pwConfirm').value = '';
+        showToast('Contraseña actualizada ✓');
+      } catch(err) {
+        if (err.code === 'auth/wrong-password') showToast('Contraseña actual incorrecta');
+        else showToast('Error: ' + (err.message || err.code));
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // NOTIFICACIONES: eliminar + auto-borrado 24h
+    // ═══════════════════════════════════════════
+    async function deleteNotif(idx) {
+      NOTIFS.splice(idx, 1);
+      renderNotifs();
+      showToast('Notificación eliminada');
+      // Persistir notificaciones eliminadas en Firestore
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const deletedIds = JSON.parse(safeGet('dermalysse_deleted_notifs') || '[]');
+          // Guardamos los títulos de notifs que quedan (para comparar al recargar)
+          await db.collection('users').doc(user.uid).set({
+            _deletedNotifTitles: deletedIds
+          }, { merge: true });
+        }
+      } catch(e) {}
+    }
+
+    function autoCleanNotifs() {
+      const now = Date.now();
+      const cutoff = 24 * 60 * 60 * 1000; // 24 horas
+      const before = NOTIFS.length;
+      NOTIFS = NOTIFS.filter(n => {
+        // Usar timestamp si existe, sino parsear el campo time/date
+        if (n.timestamp) return (now - n.timestamp) < cutoff;
+        if (n.date) {
+          const d = new Date(n.date).getTime();
+          if (!isNaN(d)) return (now - d) < cutoff;
+        }
+        return true; // mantener si no se puede determinar la fecha
+      });
+      if (NOTIFS.length < before) {
+        renderNotifs();
+        console.log('🗑️ Auto-clean: ' + (before - NOTIFS.length) + ' notificaciones eliminadas (>24h)');
+      }
     }
 
     // ─── Logros ───
