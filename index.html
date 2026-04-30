@@ -3226,7 +3226,12 @@
       cursor: pointer; transition: all .25s; box-shadow: var(--shadow-xs);
     }
     .atlas-card:hover { border-color: var(--azul-main); transform: translateY(-2px); box-shadow: var(--shadow); }
-    .atlas-card-emoji { font-size: 2rem; margin-bottom: .75rem; }
+    .atlas-card-photos { display: flex; gap: .4rem; margin-bottom: .75rem; border-radius: 8px; overflow: hidden; height: 100px; }
+    .atlas-card-photos img { flex: 1; object-fit: cover; min-width: 0; border-radius: 4px; background: var(--bg-elevated); cursor: pointer; transition: opacity .2s; }
+    .atlas-card-photos img:hover { opacity: .85; }
+    .atlas-card-photos .atlas-photo-empty { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--bg-elevated); border-radius: 4px; color: var(--text-muted); font-size: .75rem; }
+    .atlas-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 9999; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .atlas-modal-overlay img { max-width: 90vw; max-height: 90vh; border-radius: 12px; }
     .atlas-card-name { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-bottom: .25rem; }
     .atlas-card-cat { font-size: .72rem; color: var(--azul-dark); letter-spacing: .15em; text-transform: uppercase; font-weight: 600; margin-bottom: .5rem; }
     .atlas-card-desc { font-size: .88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: .75rem; }
@@ -5505,6 +5510,7 @@
       try { fetchInternetNews(); } catch(e) { console.error('fetchInternetNews:', e); }
       try { renderNotifs(); autoCleanNotifs(); } catch(e) { console.error('renderNotifs:', e); }
       try { renderForo(); } catch(e) { console.error('renderForo:', e); }
+      try { loadAtlasFromFirestore().then(()=>renderAtlas()); } catch(e) {}
       try { loadNotifSettings(); } catch(e) { console.error('loadNotifSettings:', e); }
       try { checkSubscription(); } catch(e) { console.error('checkSubscription:', e); }
       try { checkPaymentSuccess(); } catch(e) {}
@@ -7178,49 +7184,76 @@
     }
 
     // ─── 4. ATLAS DERMATOLÓGICO VISUAL ───
-    var ATLAS = [
-      { name:'Acné vulgar', cat:'Inflamatorio', emoji:'🔴', desc:'Lesiones comedónicas y/o inflamatorias (pápulas, pústulas, nódulos) causadas por obstrucción del folículo pilosebáceo.', zones:['Rostro','Espalda','Pecho'], tags:['Comedones','Pápulas','Pústulas'] },
-      { name:'Melasma', cat:'Pigmentario', emoji:'🟤', desc:'Hiperpigmentación simétrica adquirida, frecuente en mujeres, asociada a exposición UV y factores hormonales.', zones:['Pómulos','Frente','Labio superior'], tags:['Manchas','Hormonal','UV'] },
-      { name:'Rosácea', cat:'Vascular', emoji:'🌹', desc:'Enfermedad crónica con enrojecimiento facial persistente, telangiectasias y pápulo-pústulas. Exacerbada por calor, alcohol y estrés.', zones:['Mejillas','Nariz','Mentón'], tags:['Rojez','Telangiectasias','Flushing'] },
-      { name:'Dermatitis seborreica', cat:'Inflamatorio', emoji:'⚪', desc:'Dermatosis eritematoescamosa en zonas seborreicas. Asociada a Malassezia. Crónica y recurrente.', zones:['Cuero cabelludo','Cejas','Pliegues nasales'], tags:['Descamación','Eritema','Seborrea'] },
-      { name:'Psoriasis en placas', cat:'Autoinmune', emoji:'🟠', desc:'Placas eritematosas bien delimitadas con escama plateada. Fenómeno de Koebner positivo. Afecta 2-3% de la población.', zones:['Codos','Rodillas','Cuero cabelludo','Lumbar'], tags:['Placas','Escama','Autoinmune'] },
-      { name:'Queratosis actínica', cat:'Premaligno', emoji:'⚠️', desc:'Lesiones escamosas por daño UV acumulado. Considerada precancerosa. Potencial de progresión a carcinoma espinocelular.', zones:['Rostro','Manos','Cuero cabelludo'], tags:['UV','Premaligno','Escamoso'] },
-      { name:'Vitíligo', cat:'Pigmentario', emoji:'⬜', desc:'Despigmentación por destrucción autoinmune de melanocitos. Máculas acrómicas bien delimitadas.', zones:['Manos','Rostro','Genitales','Periocular'], tags:['Despigmentación','Autoinmune','Melanocitos'] },
-      { name:'Dermatitis atópica', cat:'Inflamatorio', emoji:'🔵', desc:'Dermatitis pruriginosa crónica asociada a atopia. Piel seca, eccema en flexuras. Inicio frecuente en infancia.', zones:['Flexuras','Manos','Rostro'], tags:['Prurito','Eccema','Xerosis'] },
-      { name:'Alopecia areata', cat:'Autoinmune', emoji:'🟡', desc:'Pérdida de cabello no cicatricial en parches redondos. Autoinmune. Puede progresar a alopecia total.', zones:['Cuero cabelludo','Barba','Cejas'], tags:['Alopecia','Autoinmune','Parches'] },
-      { name:'Queratosis pilaris', cat:'Estructural', emoji:'🔸', desc:'Tapones córneos foliculares en zonas de extensión. Aspecto de "piel de gallina". Muy frecuente, benigna.', zones:['Brazos','Muslos','Glúteos'], tags:['Folicular','Benigna','Común'] },
-      { name:'Hiperpigmentación post-inflamatoria', cat:'Pigmentario', emoji:'🟫', desc:'Oscurecimiento de la piel tras inflamación (acné, heridas, procedimientos). Más común en Fitzpatrick III-VI.', zones:['Variable','Post-acné','Post-procedimiento'], tags:['PIH','Melanina','Post-inflamatorio'] },
-      { name:'Urticaria', cat:'Alérgico', emoji:'🔴', desc:'Habones pruriginosos evanescentes. Mediada por histamina. Aguda (<6 sem) o crónica. Evaluar anafilaxia.', zones:['Cualquier zona','Generalizado'], tags:['Habones','Prurito','Histamina'] },
-      { name:'Herpes simple', cat:'Infeccioso', emoji:'💧', desc:'Vesículas agrupadas sobre base eritematosa. HSV-1 (oral) o HSV-2 (genital). Recurrente por reactivación viral latente en ganglios.', zones:['Labios','Perioral','Genital'], tags:['Vesículas','Viral','Recurrente'] },
-      { name:'Molusco contagioso', cat:'Infeccioso', emoji:'🔘', desc:'Pápulas perladas umbilicadas por poxvirus. Transmisión por contacto directo. Frecuente en niños y pacientes inmunocomprometidos.', zones:['Tronco','Axilas','Genitales'], tags:['Pápulas','Viral','Contacto'] },
-      { name:'Verrugas vulgares', cat:'Infeccioso', emoji:'🟤', desc:'Papilomas por VPH con superficie verrucosa. Puntos negros (trombosis capilar). Autoinoculación frecuente.', zones:['Manos','Pies','Periungeal'], tags:['VPH','Verrucoso','Autoinoculación'] },
-      { name:'Dermatitis de contacto', cat:'Alérgico', emoji:'🔶', desc:'Reacción inflamatoria por contacto con alérgeno (tipo IV) o irritante. Distribución geométrica que sigue el patrón de exposición.', zones:['Manos','Rostro','Según exposición'], tags:['Alérgica','Irritativa','Eccema'] },
-      { name:'Liquen plano', cat:'Autoinmune', emoji:'🟣', desc:'Pápulas poligonales, violáceas, pruriginosas con estrías de Wickham. Afecta piel, mucosas y uñas. Las 5 P: Pruriginoso, Poligonal, Planar, Púrpura, Pápulas.', zones:['Muñecas','Tobillos','Mucosa oral','Genitales'], tags:['Pápulas','Violáceas','Wickham'] },
-      { name:'Tiña corporis', cat:'Infeccioso', emoji:'⭕', desc:'Infección fúngica superficial por dermatofitos. Lesión anular con borde activo descamativo y centro claro. Pruriginosa.', zones:['Tronco','Extremidades','Ingle'], tags:['Fúngica','Anular','Dermatofitos'] },
-      { name:'Carcinoma basocelular', cat:'Maligno', emoji:'⛔', desc:'Neoplasia cutánea más frecuente. Crecimiento lento, raramente metastatiza. Pápula perlada con telangiectasias y borde enrollado.', zones:['Rostro','Nariz','Párpados','Orejas'], tags:['Neoplasia','Perlado','UV'] },
-      { name:'Melanoma', cat:'Maligno', emoji:'⚫', desc:'Neoplasia melanocítica maligna. Regla ABCDE: Asimetría, Bordes irregulares, Color heterogéneo, Diámetro >6mm, Evolución. Derivar URGENTE a oncología.', zones:['Cualquier zona','Espalda','Piernas','Tronco'], tags:['ABCDE','Urgente','Melanocítico'] }
+    var DEFAULT_ATLAS = [
+      { id:'atl-01', name:'Acné vulgar', cat:'Inflamatorio', desc:'Lesiones comedónicas y/o inflamatorias (pápulas, pústulas, nódulos) causadas por obstrucción del folículo pilosebáceo.', zones:['Rostro','Espalda','Pecho'], tags:['Comedones','Pápulas','Pústulas'], images:['','',''] },
+      { id:'atl-02', name:'Melasma', cat:'Pigmentario', desc:'Hiperpigmentación simétrica adquirida, frecuente en mujeres, asociada a exposición UV y factores hormonales.', zones:['Pómulos','Frente','Labio superior'], tags:['Manchas','Hormonal','UV'], images:['','',''] },
+      { id:'atl-03', name:'Rosácea', cat:'Vascular', desc:'Enfermedad crónica con enrojecimiento facial persistente, telangiectasias y pápulo-pústulas. Exacerbada por calor, alcohol y estrés.', zones:['Mejillas','Nariz','Mentón'], tags:['Rojez','Telangiectasias','Flushing'], images:['','',''] },
+      { id:'atl-04', name:'Dermatitis seborreica', cat:'Inflamatorio', desc:'Dermatosis eritematoescamosa en zonas seborreicas. Asociada a Malassezia. Crónica y recurrente.', zones:['Cuero cabelludo','Cejas','Pliegues nasales'], tags:['Descamación','Eritema','Seborrea'], images:['','',''] },
+      { id:'atl-05', name:'Psoriasis en placas', cat:'Autoinmune', desc:'Placas eritematosas bien delimitadas con escama plateada. Fenómeno de Koebner positivo. Afecta 2-3% de la población.', zones:['Codos','Rodillas','Cuero cabelludo','Lumbar'], tags:['Placas','Escama','Autoinmune'], images:['','',''] },
+      { id:'atl-06', name:'Queratosis actínica', cat:'Premaligno', desc:'Lesiones escamosas por daño UV acumulado. Considerada precancerosa. Potencial de progresión a carcinoma espinocelular.', zones:['Rostro','Manos','Cuero cabelludo'], tags:['UV','Premaligno','Escamoso'], images:['','',''] },
+      { id:'atl-07', name:'Vitíligo', cat:'Pigmentario', desc:'Despigmentación por destrucción autoinmune de melanocitos. Máculas acrómicas bien delimitadas.', zones:['Manos','Rostro','Genitales','Periocular'], tags:['Despigmentación','Autoinmune','Melanocitos'], images:['','',''] },
+      { id:'atl-08', name:'Dermatitis atópica', cat:'Inflamatorio', desc:'Dermatitis pruriginosa crónica asociada a atopia. Piel seca, eccema en flexuras. Inicio frecuente en infancia.', zones:['Flexuras','Manos','Rostro'], tags:['Prurito','Eccema','Xerosis'], images:['','',''] },
+      { id:'atl-09', name:'Alopecia areata', cat:'Autoinmune', desc:'Pérdida de cabello no cicatricial en parches redondos. Autoinmune. Puede progresar a alopecia total.', zones:['Cuero cabelludo','Barba','Cejas'], tags:['Alopecia','Autoinmune','Parches'], images:['','',''] },
+      { id:'atl-10', name:'Queratosis pilaris', cat:'Estructural', desc:'Tapones córneos foliculares en zonas de extensión. Aspecto de "piel de gallina". Muy frecuente, benigna.', zones:['Brazos','Muslos','Glúteos'], tags:['Folicular','Benigna','Común'], images:['','',''] },
+      { id:'atl-11', name:'Hiperpigmentación post-inflamatoria', cat:'Pigmentario', desc:'Oscurecimiento de la piel tras inflamación (acné, heridas, procedimientos). Más común en Fitzpatrick III-VI.', zones:['Variable','Post-acné','Post-procedimiento'], tags:['PIH','Melanina','Post-inflamatorio'], images:['','',''] },
+      { id:'atl-12', name:'Urticaria', cat:'Alérgico', desc:'Habones pruriginosos evanescentes. Mediada por histamina. Aguda (<6 sem) o crónica. Evaluar anafilaxia.', zones:['Cualquier zona','Generalizado'], tags:['Habones','Prurito','Histamina'], images:['','',''] },
+      { id:'atl-13', name:'Herpes simple', cat:'Infeccioso', desc:'Vesículas agrupadas sobre base eritematosa. HSV-1 (oral) o HSV-2 (genital). Recurrente por reactivación viral latente en ganglios.', zones:['Labios','Perioral','Genital'], tags:['Vesículas','Viral','Recurrente'], images:['','',''] },
+      { id:'atl-14', name:'Molusco contagioso', cat:'Infeccioso', desc:'Pápulas perladas umbilicadas por poxvirus. Transmisión por contacto directo. Frecuente en niños y pacientes inmunocomprometidos.', zones:['Tronco','Axilas','Genitales'], tags:['Pápulas','Viral','Contacto'], images:['','',''] },
+      { id:'atl-15', name:'Verrugas vulgares', cat:'Infeccioso', desc:'Papilomas por VPH con superficie verrucosa. Puntos negros (trombosis capilar). Autoinoculación frecuente.', zones:['Manos','Pies','Periungeal'], tags:['VPH','Verrucoso','Autoinoculación'], images:['','',''] },
+      { id:'atl-16', name:'Dermatitis de contacto', cat:'Alérgico', desc:'Reacción inflamatoria por contacto con alérgeno (tipo IV) o irritante. Distribución geométrica que sigue el patrón de exposición.', zones:['Manos','Rostro','Según exposición'], tags:['Alérgica','Irritativa','Eccema'], images:['','',''] },
+      { id:'atl-17', name:'Liquen plano', cat:'Autoinmune', desc:'Pápulas poligonales, violáceas, pruriginosas con estrías de Wickham. Afecta piel, mucosas y uñas. Las 5 P: Pruriginoso, Poligonal, Planar, Púrpura, Pápulas.', zones:['Muñecas','Tobillos','Mucosa oral','Genitales'], tags:['Pápulas','Violáceas','Wickham'], images:['','',''] },
+      { id:'atl-18', name:'Tiña corporis', cat:'Infeccioso', desc:'Infección fúngica superficial por dermatofitos. Lesión anular con borde activo descamativo y centro claro. Pruriginosa.', zones:['Tronco','Extremidades','Ingle'], tags:['Fúngica','Anular','Dermatofitos'], images:['','',''] },
+      { id:'atl-19', name:'Carcinoma basocelular', cat:'Maligno', desc:'Neoplasia cutánea más frecuente. Crecimiento lento, raramente metastatiza. Pápula perlada con telangiectasias y borde enrollado.', zones:['Rostro','Nariz','Párpados','Orejas'], tags:['Neoplasia','Perlado','UV'], images:['','',''] },
+      { id:'atl-20', name:'Melanoma', cat:'Maligno', desc:'Neoplasia melanocítica maligna. Regla ABCDE: Asimetría, Bordes irregulares, Color heterogéneo, Diámetro >6mm, Evolución. Derivar URGENTE a oncología.', zones:['Cualquier zona','Espalda','Piernas','Tronco'], tags:['ABCDE','Urgente','Melanocítico'], images:['','',''] }
     ];
+    var ATLAS = DEFAULT_ATLAS.slice();
 
-    var ATLAS_CATS = [...new Set(ATLAS.map(a => a.cat))];
+    // Cargar Atlas desde Firestore
+    async function loadAtlasFromFirestore() {
+      try {
+        const snap = await db.collection('atlas').get();
+        if (!snap.empty) {
+          ATLAS = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+      } catch(e) { console.log('Atlas: usando datos default'); }
+    }
 
     function renderAtlas(filter) {
       const filtersEl = document.getElementById('atlasFilters');
       const gridEl = document.getElementById('atlasGrid');
       if (!filtersEl || !gridEl) return;
 
+      const cats = [...new Set(ATLAS.map(a => a.cat))];
       filtersEl.innerHTML = `<div class="atlas-filter ${!filter?'active':''}" onclick="renderAtlas()">Todos</div>` +
-        ATLAS_CATS.map(c => `<div class="atlas-filter ${filter===c?'active':''}" onclick="renderAtlas('${c}')">${c}</div>`).join('');
+        cats.map(c => `<div class="atlas-filter ${filter===c?'active':''}" onclick="renderAtlas('${c}')">${c}</div>`).join('');
 
       const list = filter ? ATLAS.filter(a => a.cat === filter) : ATLAS;
-      gridEl.innerHTML = list.map(a => `
-        <div class="atlas-card" onclick="showToast('Detalle de ${a.name} · próximamente')">
-          <div class="atlas-card-emoji">${a.emoji}</div>
-          <div class="atlas-card-cat">${a.cat}</div>
-          <div class="atlas-card-name">${a.name}</div>
-          <div class="atlas-card-desc">${a.desc}</div>
-          <div class="atlas-card-tags">${a.tags.map(t => `<span class="atlas-tag">${t}</span>`).join('')}</div>
-        </div>
-      `).join('');
+      gridEl.innerHTML = list.map(a => {
+        const imgs = a.images || ['','',''];
+        const photosHtml = imgs.map((url,i) => {
+          if (url) {
+            const src = url.includes('drive.google.com') ? url.replace(/\/file\/d\/([^/]+).*/, '/uc?export=view&id=$1') : url;
+            return '<img src="' + src + '" alt="' + a.name + ' ' + (i+1) + '" onclick="event.stopPropagation();showAtlasPhoto(this.src)" onerror="this.style.display=\'none\'">';
+          }
+          return '<div class="atlas-photo-empty"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>';
+        }).join('');
+
+        return '<div class="atlas-card">' +
+          '<div class="atlas-card-photos">' + photosHtml + '</div>' +
+          '<div class="atlas-card-cat">' + a.cat + '</div>' +
+          '<div class="atlas-card-name">' + a.name + '</div>' +
+          '<div class="atlas-card-desc">' + a.desc + '</div>' +
+          '<div class="atlas-card-tags">' + (a.tags||[]).map(function(t){return '<span class="atlas-tag">' + t + '</span>';}).join('') + '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function showAtlasPhoto(src) {
+      const overlay = document.createElement('div');
+      overlay.className = 'atlas-modal-overlay';
+      overlay.innerHTML = '<img src="' + src + '">';
+      overlay.onclick = function() { overlay.remove(); };
+      document.body.appendChild(overlay);
     }
 
     // ─── 5. FICHA DE PACIENTE ───
