@@ -4609,7 +4609,13 @@
               </div>
             </div>
             <div style="margin-top:1.75rem;">
-              <button class="btn-cancel-sub" onclick="openStripePortal()">Gestionar suscripción</button>
+              <div id="subActions">
+                <button class="btn-cancel-sub" id="btnCancelSub" onclick="cancelSubscription()">Cancelar suscripción</button>
+              </div>
+              <div id="subCancelMsg" style="display:none;margin-top:.75rem;padding:.75rem 1rem;background:rgba(225,29,72,.06);border-radius:8px;font-size:.85rem;color:#b91c1c;">
+                Tu suscripción se cancelará el <strong id="subCancelDate"></strong>. Seguirás teniendo acceso hasta esa fecha.
+                <br><button onclick="reactivateSubscription()" style="background:none;border:none;color:var(--azul-main);font-weight:600;cursor:pointer;padding:0;margin-top:.5rem;font-family:inherit;font-size:.85rem;">Reactivar suscripción</button>
+              </div>
             </div>
           </div>
         </div>
@@ -7311,10 +7317,19 @@
           document.getElementById('subPlans').style.display = 'none';
           document.getElementById('subPlanName').textContent = sub.plan === 'anual' ? 'Dermalysse Anual' : 'Dermalysse Mensual';
           document.getElementById('subPlanPrice').innerHTML = sub.plan === 'anual' ? '<strong>$1,799 MXN</strong> / año' : '<strong>$200 MXN</strong> / mes';
-          document.getElementById('subStatus').innerHTML = sub.cancelAtPeriodEnd ? '● Activa (se cancela al final del período)' : '● Activa';
-          document.getElementById('subStatus').style.color = sub.cancelAtPeriodEnd ? 'var(--warning)' : 'var(--success)';
+          document.getElementById('subStatus').innerHTML = sub.cancelAtPeriodEnd ? '● Cancelación programada' : '● Activa';
+          document.getElementById('subStatus').style.color = sub.cancelAtPeriodEnd ? '#b91c1c' : 'var(--success)';
           if (sub.currentPeriodEnd) {
             document.getElementById('subNextBill').textContent = new Date(sub.currentPeriodEnd).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+          }
+          // Mostrar/ocultar botón cancelar vs mensaje de cancelación
+          if (sub.cancelAtPeriodEnd) {
+            document.getElementById('btnCancelSub').style.display = 'none';
+            document.getElementById('subCancelMsg').style.display = '';
+            document.getElementById('subCancelDate').textContent = new Date(sub.currentPeriodEnd).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+          } else {
+            document.getElementById('btnCancelSub').style.display = '';
+            document.getElementById('subCancelMsg').style.display = 'none';
           }
           // Quitar locks
           removeLocks();
@@ -7380,6 +7395,59 @@
         btn.disabled = false;
         btn.textContent = plan === 'anual' ? 'Suscribirme anual' : 'Suscribirme mensual';
       }
+    }
+
+    // Cancelar suscripción (al final del período)
+    async function cancelSubscription() {
+      if (!confirm('¿Deseas cancelar tu suscripción?\n\nSeguirás teniendo acceso hasta el final del período que ya pagaste.')) return;
+      const btn = document.getElementById('btnCancelSub');
+      btn.disabled = true;
+      btn.textContent = 'Cancelando...';
+      try {
+        const user = auth.currentUser;
+        if (!user || !WEBHOOK_SERVER) return;
+        const res = await fetch(WEBHOOK_SERVER + '/cancel-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firebaseUid: user.uid })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Suscripción cancelada. Acceso hasta el final del período');
+          _userSubscription.cancelAtPeriodEnd = true;
+          _userSubscription.currentPeriodEnd = data.currentPeriodEnd;
+          checkSubscription();
+        } else {
+          showToast('Error: ' + (data.error || ''));
+          btn.disabled = false;
+          btn.textContent = 'Cancelar suscripción';
+        }
+      } catch(e) {
+        showToast('Error de conexión');
+        btn.disabled = false;
+        btn.textContent = 'Cancelar suscripción';
+      }
+    }
+
+    // Reactivar suscripción (quitar cancelación pendiente)
+    async function reactivateSubscription() {
+      try {
+        const user = auth.currentUser;
+        if (!user || !WEBHOOK_SERVER) return;
+        const res = await fetch(WEBHOOK_SERVER + '/reactivate-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firebaseUid: user.uid })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Suscripción reactivada');
+          _userSubscription.cancelAtPeriodEnd = false;
+          checkSubscription();
+        } else {
+          showToast('Error: ' + (data.error || ''));
+        }
+      } catch(e) { showToast('Error de conexión'); }
     }
 
     // Portal de Stripe (gestionar/cancelar)
