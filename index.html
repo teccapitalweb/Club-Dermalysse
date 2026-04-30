@@ -3980,6 +3980,7 @@
   <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
+  <script>if(window.opener&&new URLSearchParams(location.search).get('payment')==='success'){document.documentElement.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#2e5f7a;font-size:1.2rem">Pago exitoso. Cerrando...</div>';setTimeout(function(){window.close()},1000);}</script>
 
   <!-- ═══════════════════════════════════════════════════
        AUTH SCREEN
@@ -7356,7 +7357,23 @@
 
         const data = await res.json();
         if (data.url) {
-          window.location.href = data.url;
+          // Abrir Stripe Checkout en popup
+          const w = 500, h = 700;
+          const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
+          const popup = window.open(data.url, 'stripeCheckout', 'width='+w+',height='+h+',left='+left+',top='+top+',toolbar=no,menubar=no,scrollbars=yes');
+          // Monitorear cuando cierra el popup
+          const checkPopup = setInterval(() => {
+            if (!popup || popup.closed) {
+              clearInterval(checkPopup);
+              btn.disabled = false;
+              btn.textContent = plan === 'anual' ? 'Suscribirme anual' : 'Suscribirme mensual';
+              // Verificar si el pago fue exitoso
+              setTimeout(() => checkSubscription(), 2000);
+              setTimeout(() => {
+                if (_userSubscription.status === 'active') showThankYou();
+              }, 3000);
+            }
+          }, 500);
         } else {
           showToast('Error: ' + (data.error || 'No se pudo crear la sesión'));
           btn.disabled = false;
@@ -7456,6 +7473,12 @@
     function checkPaymentSuccess() {
       const params = new URLSearchParams(window.location.search);
       if (params.get('payment') === 'success') {
+        // Si estamos en un popup, cerrarlo
+        if (window.opener) {
+          window.close();
+          return;
+        }
+        // Si no es popup (fallback), mostrar thank you
         setTimeout(() => showThankYou(), 800);
       }
     }
