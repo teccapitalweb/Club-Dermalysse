@@ -3917,6 +3917,40 @@
     .notif-item:hover .notif-delete { opacity: 1; }
     .notif-delete:hover { color: #e11d48; }
 
+
+    /* ═══ STRIPE: Planes de suscripción ═══ */
+    .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+    @media(max-width:640px) { .plans-grid { grid-template-columns: 1fr; } }
+    .plan-card { background: var(--bg-surface); border: 2px solid var(--border-soft); border-radius: var(--radius-sm); padding: 2rem; text-align: center; position: relative; transition: all .3s; }
+    .plan-card:hover { border-color: var(--azul-main); transform: translateY(-2px); }
+    .plan-card.popular { border-color: var(--azul-main); }
+    .plan-card.popular::before { content: 'Más popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--azul-main); color: white; font-size: .75rem; font-weight: 700; padding: .25rem .85rem; border-radius: 20px; }
+    .plan-card-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: .5rem; }
+    .plan-card-price { font-size: 2rem; font-weight: 800; color: var(--azul-dark); }
+    .plan-card-price span { font-size: .9rem; font-weight: 400; color: var(--text-muted); }
+    .plan-card-desc { font-size: .88rem; color: var(--text-muted); margin: .75rem 0 1.5rem; line-height: 1.5; }
+    .plan-card-save { display: inline-block; background: rgba(106,138,79,.12); color: #5a7a3a; font-size: .8rem; font-weight: 600; padding: .25rem .75rem; border-radius: 20px; margin-bottom: .75rem; }
+    .btn-subscribe { width: 100%; padding: .85rem; border: none; border-radius: 10px; background: var(--azul-main); color: white; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .btn-subscribe:hover { background: var(--azul-dark); transform: scale(1.02); }
+    .btn-subscribe:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ═══ LOCK OVERLAY (modo explorador) ═══ */
+    .content-locked { position: relative; }
+    .content-locked::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.7); backdrop-filter: blur(3px); border-radius: var(--radius-sm); z-index: 5; pointer-events: none; }
+    body.dark-mode .content-locked::after { background: rgba(30,30,30,.7); }
+    .lock-banner { background: var(--bg-surface); border: 2px solid var(--azul-main); border-radius: var(--radius-sm); padding: 2rem; text-align: center; margin-bottom: 1.5rem; }
+    .lock-banner h3 { color: var(--azul-dark); font-size: 1.1rem; margin-bottom: .5rem; }
+    .lock-banner p { color: var(--text-muted); font-size: .9rem; margin-bottom: 1rem; }
+    .lock-banner .btn-subscribe { max-width: 280px; margin: 0 auto; }
+
+    /* ═══ THANK YOU (confeti) ═══ */
+    .thankyou-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .thankyou-card { background: white; border-radius: 20px; padding: 3rem 2.5rem; text-align: center; max-width: 420px; width: 90%; position: relative; }
+    .thankyou-emoji { font-size: 3.5rem; margin-bottom: 1rem; }
+    .thankyou-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: .5rem; }
+    .thankyou-text { font-size: .95rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5; }
+    .thankyou-btn { padding: .85rem 2rem; border: none; border-radius: 10px; background: var(--azul-main); color: white; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    .confetti { position: fixed; top: -10px; z-index: 10000; pointer-events: none; }
     /* ═══ CONFIG: cambiar contraseña modal ═══ */
     .pw-change-form { margin-top: 1rem; }
     .pw-change-form .form-field { margin-bottom: .75rem; }
@@ -3935,7 +3969,15 @@
     const auth=firebase.auth();
     const db=firebase.firestore();
     const googleProvider=new firebase.auth.GoogleAuthProvider();
+
+    // ═══ STRIPE CONFIG ═══
+    const STRIPE_PK = 'pk_test_51TMAcSA7If2CqXs95MzeJgFKo6uOwe9VsycHRUcsVRWoy6LjdCcR3gHR8B58a3rEv3PIdH6mNUdClHOyujK6jJ5t00afIrW22P';
+    const STRIPE_PRICE_MENSUAL = 'price_1TRxnbA7If2CqXs9fQb99xn5';
+    const STRIPE_PRICE_ANUAL = 'price_1TRxodA7If2CqXs9xKKFDGl8';
+    const WEBHOOK_SERVER = 'https://dermalysse-webhook-production.up.railway.app'; // ← URL de Railway (se llena después del deploy)
+    let _userSubscription = { status: 'none' };
   </script>
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
 
@@ -4553,28 +4595,44 @@
           <p class="view-subtitle">Detalles de tu plan y beneficios activos.</p>
         </div>
 
-        <div class="subscription-current">
-          <div class="plan-label">Plan actual</div>
-          <div class="plan-name">Dermalysse Premium</div>
-          <div class="plan-price"><strong>$499 MXN</strong> / mes · Renovación automática</div>
-
-          <div class="plan-meta">
-            <div class="plan-meta-item">
-              <div class="plan-meta-label">Estado</div>
-              <div class="plan-meta-value" style="color:var(--success);">● Activa</div>
+        <!-- Estado dinámico de suscripción -->
+        <div id="subActive" style="display:none;">
+          <div class="subscription-current">
+            <div class="plan-label">Plan actual</div>
+            <div class="plan-name" id="subPlanName">—</div>
+            <div class="plan-price" id="subPlanPrice">—</div>
+            <div class="plan-meta">
+              <div class="plan-meta-item">
+                <div class="plan-meta-label">Estado</div>
+                <div class="plan-meta-value" id="subStatus" style="color:var(--success);">● Activa</div>
+              </div>
+              <div class="plan-meta-item">
+                <div class="plan-meta-label">Próximo cobro</div>
+                <div class="plan-meta-value" id="subNextBill">—</div>
+              </div>
             </div>
-            <div class="plan-meta-item">
-              <div class="plan-meta-label">Próximo cobro</div>
-              <div class="plan-meta-value">15 Nov 2026</div>
-            </div>
-            <div class="plan-meta-item">
-              <div class="plan-meta-label">Miembro desde</div>
-              <div class="plan-meta-value">Enero 2025</div>
+            <div style="margin-top:1.75rem;">
+              <button class="btn-cancel-sub" onclick="openStripePortal()">Gestionar suscripción</button>
             </div>
           </div>
+        </div>
 
-          <div style="margin-top:1.75rem; display:flex; gap:.65rem; flex-wrap:wrap; align-items:center;">
-            <button class="btn-cancel-sub" onclick="showToast('Cancelación · contacta a soporte')">Cancelar suscripción</button>
+        <!-- Planes para no suscritos -->
+        <div id="subPlans">
+          <div class="plans-grid">
+            <div class="plan-card">
+              <div class="plan-card-name">Plan Mensual</div>
+              <div class="plan-card-price">$200 <span>MXN/mes</span></div>
+              <div class="plan-card-desc">Acceso completo a cursos, webinars en vivo, material PDF y comunidad Dermalysse.</div>
+              <button class="btn-subscribe" onclick="startCheckout('mensual')" id="btnSubMensual">Suscribirme mensual</button>
+            </div>
+            <div class="plan-card popular">
+              <div class="plan-card-name">Plan Anual</div>
+              <div class="plan-card-price">$1,799 <span>MXN/año</span></div>
+              <div class="plan-card-save">Ahorra $601 al año</div>
+              <div class="plan-card-desc">Acceso completo al Club Dermalysse por 1 año. Equivale a $150/mes.</div>
+              <button class="btn-subscribe" onclick="startCheckout('anual')" id="btnSubAnual">Suscribirme anual</button>
+            </div>
           </div>
         </div>
 
@@ -5445,6 +5503,8 @@
       try { renderNotifs(); autoCleanNotifs(); } catch(e) { console.error('renderNotifs:', e); }
       try { renderForo(); } catch(e) { console.error('renderForo:', e); }
       try { loadNotifSettings(); } catch(e) { console.error('loadNotifSettings:', e); }
+      try { checkSubscription(); } catch(e) { console.error('checkSubscription:', e); }
+      try { checkPaymentSuccess(); } catch(e) {}
       try { startWebinarCountdown(); } catch(e) { console.error('startWebinarCountdown:', e); }
       try { renderLogros(); } catch(e) { console.error('renderLogros:', e); }
       try { updateStreak(); } catch(e) { console.error('updateStreak:', e); }
@@ -5720,6 +5780,11 @@
     let currentCourseId = null;
 
     function openCourse(courseId) {
+      if (_userSubscription.status !== 'active') {
+        showToast('Suscríbete para acceder a los cursos');
+        goTo('suscripcion');
+        return;
+      }
       currentCourseId = courseId;
       const course = COURSES.find(c => c.id === courseId);
       if (!course) return;
@@ -7227,6 +7292,173 @@
 
     // ─── Init herramientas al entrar ───
     // Atlas se renderiza al navegar
+
+
+    // ═══════════════════════════════════════════
+    // STRIPE: Checkout, Portal, Suscripción
+    // ═══════════════════════════════════════════
+
+    // Verificar suscripción al cargar
+    async function checkSubscription() {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (!doc.exists) return;
+        const sub = doc.data().subscription || {};
+        _userSubscription = sub;
+
+        if (sub.status === 'active') {
+          // Mostrar info de suscripción activa
+          document.getElementById('subActive').style.display = '';
+          document.getElementById('subPlans').style.display = 'none';
+          document.getElementById('subPlanName').textContent = sub.plan === 'anual' ? 'Dermalysse Anual' : 'Dermalysse Mensual';
+          document.getElementById('subPlanPrice').innerHTML = sub.plan === 'anual' ? '<strong>$1,799 MXN</strong> / año' : '<strong>$200 MXN</strong> / mes';
+          document.getElementById('subStatus').innerHTML = sub.cancelAtPeriodEnd ? '● Activa (se cancela al final del período)' : '● Activa';
+          document.getElementById('subStatus').style.color = sub.cancelAtPeriodEnd ? 'var(--warning)' : 'var(--success)';
+          if (sub.currentPeriodEnd) {
+            document.getElementById('subNextBill').textContent = new Date(sub.currentPeriodEnd).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+          }
+          // Quitar locks
+          removeLocks();
+        } else {
+          // Mostrar planes
+          document.getElementById('subActive').style.display = 'none';
+          document.getElementById('subPlans').style.display = '';
+          // Aplicar locks
+          applyLocks();
+        }
+      } catch(e) { console.error('Check subscription error:', e); }
+    }
+
+    // Iniciar checkout
+    async function startCheckout(plan) {
+      const btn = document.getElementById(plan === 'anual' ? 'btnSubAnual' : 'btnSubMensual');
+      btn.disabled = true;
+      btn.textContent = 'Procesando...';
+
+      try {
+        const user = auth.currentUser;
+        if (!user) { showToast('Inicia sesión primero'); btn.disabled = false; return; }
+        if (!WEBHOOK_SERVER) { showToast('Servidor no configurado'); btn.disabled = false; return; }
+
+        const res = await fetch(WEBHOOK_SERVER + '/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            priceId: plan === 'anual' ? STRIPE_PRICE_ANUAL : STRIPE_PRICE_MENSUAL,
+            firebaseUid: user.uid,
+            email: user.email,
+            successUrl: window.location.origin + window.location.pathname + '?payment=success',
+            cancelUrl: window.location.origin + window.location.pathname + '?payment=canceled'
+          })
+        });
+
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          showToast('Error: ' + (data.error || 'No se pudo crear la sesión'));
+          btn.disabled = false;
+          btn.textContent = plan === 'anual' ? 'Suscribirme anual' : 'Suscribirme mensual';
+        }
+      } catch(e) {
+        showToast('Error de conexión');
+        btn.disabled = false;
+        btn.textContent = plan === 'anual' ? 'Suscribirme anual' : 'Suscribirme mensual';
+      }
+    }
+
+    // Portal de Stripe (gestionar/cancelar)
+    async function openStripePortal() {
+      try {
+        const user = auth.currentUser;
+        if (!user || !WEBHOOK_SERVER) return;
+
+        const res = await fetch(WEBHOOK_SERVER + '/create-portal-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firebaseUid: user.uid,
+            returnUrl: window.location.origin + window.location.pathname
+          })
+        });
+
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+        else showToast('Error: ' + (data.error || ''));
+      } catch(e) { showToast('Error de conexión'); }
+    }
+
+    // ═══ MODO EXPLORADOR (lock) ═══
+    function applyLocks() {
+      // Agregar banner de lock en secciones de contenido
+      const lockViews = ['view-cursos', 'view-webinar', 'view-pdf'];
+      lockViews.forEach(id => {
+        const view = document.getElementById(id);
+        if (!view) return;
+        // No duplicar banners
+        if (view.querySelector('.lock-banner')) return;
+        const banner = document.createElement('div');
+        banner.className = 'lock-banner';
+        banner.innerHTML = '<h3>Contenido exclusivo para miembros</h3><p>Suscríbete para acceder a todos los cursos, webinars y material del Club Dermalysse.</p><button class="btn-subscribe" onclick="goTo(\'suscripcion\')">Ver planes</button>';
+        const header = view.querySelector('.view-header');
+        if (header) header.after(banner);
+      });
+
+      // Blur en las listas de contenido
+      document.querySelectorAll('#courseGrid, #webinarList, #pdfGrid').forEach(el => {
+        el.classList.add('content-locked');
+      });
+    }
+
+    function removeLocks() {
+      document.querySelectorAll('.lock-banner').forEach(el => el.remove());
+      document.querySelectorAll('.content-locked').forEach(el => el.classList.remove('content-locked'));
+    }
+
+    // ═══ THANK YOU + CONFETTI ═══
+    function showThankYou() {
+      const overlay = document.createElement('div');
+      overlay.className = 'thankyou-overlay';
+      overlay.innerHTML = '<div class="thankyou-card"><div class="thankyou-emoji">🎉</div><div class="thankyou-title">¡Gracias por suscribirte!</div><div class="thankyou-text">Ya eres parte del Club Dermalysse. Ahora tienes acceso completo a todos los cursos, webinars y material exclusivo.</div><button class="thankyou-btn" onclick="closeThankYou()">Comenzar a aprender</button></div>';
+      document.body.appendChild(overlay);
+      launchConfetti();
+    }
+
+    function closeThankYou() {
+      const overlay = document.querySelector('.thankyou-overlay');
+      if (overlay) overlay.remove();
+      // Limpiar URL
+      const url = new URL(window.location);
+      url.searchParams.delete('payment');
+      window.history.replaceState({}, '', url);
+      // Recargar suscripción
+      checkSubscription();
+    }
+
+    function launchConfetti() {
+      const colors = ['#2e5f7a', '#e8b940', '#6a8a4f', '#d4534a', '#8b5cf6', '#f59e0b'];
+      for (let i = 0; i < 60; i++) {
+        const conf = document.createElement('div');
+        conf.className = 'confetti';
+        conf.style.cssText = 'width:' + (6+Math.random()*8) + 'px;height:' + (6+Math.random()*8) + 'px;background:' + colors[Math.floor(Math.random()*colors.length)] + ';left:' + Math.random()*100 + 'vw;opacity:' + (.7+Math.random()*.3) + ';border-radius:' + (Math.random()>.5?'50%':'2px') + ';';
+        document.body.appendChild(conf);
+        const dur = 1.5 + Math.random() * 2;
+        conf.animate([
+          { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+          { transform: 'translateY(' + (window.innerHeight + 50) + 'px) rotate(' + (360+Math.random()*360) + 'deg)', opacity: 0 }
+        ], { duration: dur * 1000, easing: 'cubic-bezier(.25,.46,.45,.94)' }).onfinish = () => conf.remove();
+      }
+    }
+
+    // Verificar payment=success en URL al cargar
+    function checkPaymentSuccess() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment') === 'success') {
+        setTimeout(() => showThankYou(), 800);
+      }
+    }
 
     // ─── AUTO-LOGIN FIREBASE ───
     auth.onAuthStateChanged(async function(user) {
