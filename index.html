@@ -3900,6 +3900,24 @@
     const firebaseApp = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+  </script>
+
+  <!-- ═══ FIREBASE SDK (CDN compat) ═══ -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3EQ9hcS7wusPAgmL3LvCyB_QV_kpIP4g",
+      authDomain: "club-dermalysse.firebaseapp.com",
+      projectId: "club-dermalysse",
+      storageBucket: "club-dermalysse.firebasestorage.app",
+      messagingSenderId: "1075584613391",
+      appId: "1:1075584613391:web:71abdd47c4364a27daf77a"
+    };
+    const firebaseApp = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
   </script>
 </head>
@@ -3984,7 +4002,7 @@
           </button>
 
           <div class="auth-hint" style="margin-top:1rem;">
-            Ingresa con tu cuenta registrada o usa Google para acceder al club.
+            Ingresa con tu cuenta registrada o usa Google para acceder rápidamente.
           </div>
 
           <p class="auth-footer">
@@ -4025,6 +4043,16 @@
               <label for="acceptTerms">He leído y acepto los <a href="#" onclick="event.preventDefault(); openTermsModal();">Términos y Condiciones</a> y la <a href="#" onclick="event.preventDefault(); openPrivacyModal();">Política de Privacidad</a> de Dermalysse.</label>
             </div>
             <button type="button" class="btn-primary" onclick="handleRegister(event)">Crear mi cuenta</button>
+            <div style="text-align:center;margin:1rem 0;color:var(--text-muted);font-size:.85rem;">— o —</div>
+            <button type="button" class="btn-primary" onclick="handleGoogleLogin()" style="background:#fff;color:#333;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;gap:.5rem;">
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+              Registrarme con Google
+            </button>
+            <div style="text-align:center;margin:1rem 0;color:var(--text-muted);font-size:.85rem;">— o —</div>
+            <button type="button" class="btn-primary" onclick="handleGoogleLogin()" style="background:#fff;color:#333;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;gap:.5rem;font-size:.95rem;">
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+              Registrarme con Google
+            </button>
           </form>
 
           <p class="auth-footer">
@@ -5329,27 +5357,81 @@
       catch (e) { delete memStore[key]; }
     }
 
+
+    // ═══ GOOGLE SIGN-IN (popup) ═══
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    async function handleGoogleLogin() {
+      try {
+        const result = await auth.signInWithPopup(googleProvider);
+        const user = result.user;
+        console.log('✅ Google Sign-In exitoso:', user.email);
+
+        // Verificar si el usuario ya tiene perfil en Firestore
+        const profileDoc = await db.collection('users').doc(user.uid).get();
+        if (!profileDoc.exists) {
+          // Primera vez con Google — crear perfil
+          const profile = {
+            name: user.displayName ? user.displayName.split(' ')[0] : 'Miembro',
+            lastname: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
+            email: user.email,
+            phone: '', city: '', bio: '',
+            gotas: 0, streak: 0, progress: {},
+            photo: user.photoURL || ''
+          };
+          await db.collection('users').doc(user.uid).set(profile);
+
+          // Registrar como miembro
+          await db.collection('members').add({
+            uid: user.uid,
+            name: user.displayName || 'Miembro',
+            email: user.email,
+            plan: 'Premium',
+            status: 'active',
+            joined: new Date().toISOString().split('T')[0],
+            courses: 0
+          });
+
+          safeSet(PROFILE_KEY, JSON.stringify(profile));
+          showToast('¡Bienvenido/a al Club Dermalysse!');
+        } else {
+          safeSet(PROFILE_KEY, JSON.stringify(profileDoc.data()));
+        }
+
+        safeSet(AUTH_KEY, JSON.stringify({ email: user.email, uid: user.uid, loggedAt: Date.now() }));
+        await loadAllDataFromFirestore();
+        enterApp();
+      } catch (err) {
+        console.error('Google Sign-In error:', err);
+        if (err.code === 'auth/popup-closed-by-user') {
+          // Usuario cerró el popup, no hacer nada
+        } else if (err.code === 'auth/unauthorized-domain') {
+          showToast('Error: Este dominio no está autorizado en Firebase');
+        } else {
+          showToast('Error con Google: ' + (err.message || err.code));
+        }
+      }
+    }
+
     async function handleLogin(e) {
       if (e && e.preventDefault) e.preventDefault();
-      const emailEl = document.getElementById('loginEmail');
-      const pwEl = document.getElementById('loginPassword');
-      const email = (emailEl.value || '').trim();
-      const pw = pwEl.value || '';
-      if (!email || !email.includes('@')) { emailEl.style.borderColor = '#e11d48'; emailEl.focus(); return false; }
-      if (pw.length < 6) { pwEl.style.borderColor = '#e11d48'; showToast('Mínimo 6 caracteres'); pwEl.focus(); return false; }
+      const email = (document.getElementById('loginEmail').value || '').trim();
+      const pw = document.getElementById('loginPassword').value || '';
+      if (!email || !email.includes('@')) { document.getElementById('loginEmail').style.borderColor='#e11d48'; return false; }
+      if (pw.length < 6) { document.getElementById('loginPassword').style.borderColor='#e11d48'; showToast('Mínimo 6 caracteres'); return false; }
       try {
         const cred = await auth.signInWithEmailAndPassword(email, pw);
-        const profileDoc = await db.collection('users').doc(cred.user.uid).get();
-        const profile = profileDoc.exists ? profileDoc.data() : { name:'Miembro', lastname:'', email, phone:'', city:'', bio:'' };
+        const pDoc = await db.collection('users').doc(cred.user.uid).get();
+        const profile = pDoc.exists ? pDoc.data() : { name:'Miembro', lastname:'', email, phone:'', city:'', bio:'' };
         safeSet(PROFILE_KEY, JSON.stringify(profile));
         safeSet(AUTH_KEY, JSON.stringify({ email: cred.user.email, uid: cred.user.uid, loggedAt: Date.now() }));
         await loadAllDataFromFirestore();
         enterApp();
       } catch(err) {
         console.error('Login error:', err);
-        if (err.code === 'auth/user-not-found') showToast('No existe una cuenta con ese correo');
-        else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') showToast('Contraseña incorrecta');
-        else showToast('Error: ' + (err.message || err.code));
+        if (err.code==='auth/user-not-found') showToast('No existe una cuenta con ese correo');
+        else if (err.code==='auth/wrong-password'||err.code==='auth/invalid-credential') showToast('Contraseña incorrecta');
+        else showToast('Error: '+(err.message||err.code));
       }
       return false;
     }
@@ -5388,40 +5470,102 @@
 
     async function handleRegister(e) {
       if (e && e.preventDefault) e.preventDefault();
-      const name = (document.getElementById('regName').value || '').trim();
-      const lastname = (document.getElementById('regLastname').value || '').trim();
-      const email = (document.getElementById('regEmail').value || '').trim();
-      const phone = (document.getElementById('regPhone').value || '').trim();
-      const pw = document.getElementById('regPassword').value || '';
-      const termsAccepted = document.getElementById('acceptTerms').checked;
-      const termsWrap = document.getElementById('termsCheck');
-      termsWrap.classList.remove('error');
-      if (!name || !lastname || !email || pw.length < 6) {
-        [['regName',name],['regLastname',lastname],['regEmail',email]].forEach(([id,v]) => { if (!v) document.getElementById(id).style.borderColor = '#e11d48'; });
-        if (pw.length < 6) { document.getElementById('regPassword').style.borderColor = '#e11d48'; showToast('Mínimo 6 caracteres'); }
+      const name = (document.getElementById('regName').value||'').trim();
+      const lastname = (document.getElementById('regLastname').value||'').trim();
+      const email = (document.getElementById('regEmail').value||'').trim();
+      const phone = (document.getElementById('regPhone').value||'').trim();
+      const pw = document.getElementById('regPassword').value||'';
+      const termsOk = document.getElementById('acceptTerms').checked;
+      document.getElementById('termsCheck').classList.remove('error');
+      if (!name||!lastname||!email||pw.length<6) {
+        [['regName',name],['regLastname',lastname],['regEmail',email]].forEach(([id,v])=>{if(!v)document.getElementById(id).style.borderColor='#e11d48';});
+        if(pw.length<6){document.getElementById('regPassword').style.borderColor='#e11d48';showToast('Mínimo 6 caracteres');}
         return false;
       }
-      if (!termsAccepted) { termsWrap.classList.add('error'); showToast('Debes aceptar los Términos y Condiciones'); return false; }
+      if (!termsOk) { document.getElementById('termsCheck').classList.add('error'); showToast('Debes aceptar los Términos'); return false; }
       try {
         const cred = await auth.createUserWithEmailAndPassword(email, pw);
-        const profile = { name, lastname, email, phone, city:'', bio:'', gotas: 0, streak: 0, progress: {} };
+        const profile = { name, lastname, email, phone, city:'', bio:'', gotas:0, streak:0, progress:{} };
         await db.collection('users').doc(cred.user.uid).set(profile);
-        await db.collection('members').add({
-          uid: cred.user.uid, name: name + ' ' + lastname, email,
-          plan: 'Premium', status: 'active', joined: new Date().toISOString().split('T')[0], courses: 0
-        });
+        await db.collection('members').add({ uid:cred.user.uid, name:name+' '+lastname, email, plan:'Premium', status:'active', joined:new Date().toISOString().split('T')[0], courses:0 });
         safeSet(PROFILE_KEY, JSON.stringify(profile));
-        safeSet(AUTH_KEY, JSON.stringify({ email, uid: cred.user.uid, loggedAt: Date.now() }));
+        safeSet(AUTH_KEY, JSON.stringify({ email, uid:cred.user.uid, loggedAt:Date.now() }));
         await loadAllDataFromFirestore();
         enterApp();
         showToast('¡Bienvenido/a al Club Dermalysse!');
       } catch(err) {
         console.error('Register error:', err);
-        if (err.code === 'auth/email-already-in-use') showToast('Ya existe una cuenta con ese correo');
-        else if (err.code === 'auth/weak-password') showToast('Contraseña muy débil (mínimo 6 caracteres)');
-        else showToast('Error: ' + (err.message || err.code));
+        if(err.code==='auth/email-already-in-use') showToast('Ya existe una cuenta con ese correo');
+        else if(err.code==='auth/weak-password') showToast('Contraseña muy débil');
+        else showToast('Error: '+(err.message||err.code));
       }
       return false;
+    }
+
+    // ═══ GOOGLE SIGN-IN (popup) ═══
+    async function handleGoogleLogin() {
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        const pDoc = await db.collection('users').doc(user.uid).get();
+        if (!pDoc.exists) {
+          const names = (user.displayName||'').split(' ');
+          const profile = { name:names[0]||'', lastname:names.slice(1).join(' ')||'', email:user.email, phone:'', city:'', bio:'', gotas:0, streak:0, progress:{} };
+          await db.collection('users').doc(user.uid).set(profile);
+          await db.collection('members').add({ uid:user.uid, name:user.displayName||user.email, email:user.email, plan:'Premium', status:'active', joined:new Date().toISOString().split('T')[0], courses:0 });
+          safeSet(PROFILE_KEY, JSON.stringify(profile));
+        } else { safeSet(PROFILE_KEY, JSON.stringify(pDoc.data())); }
+        safeSet(AUTH_KEY, JSON.stringify({ email:user.email, uid:user.uid, loggedAt:Date.now() }));
+        await loadAllDataFromFirestore();
+        enterApp();
+      } catch(err) { if(err.code!=='auth/popup-closed-by-user') showToast('Error Google: '+(err.message||'')); }
+    }
+
+    // ═══ GOOGLE SIGN-IN (popup) ═══
+    async function handleGoogleLogin() {
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        // Verificar si el perfil ya existe en Firestore
+        const profileDoc = await db.collection('users').doc(user.uid).get();
+        if (!profileDoc.exists) {
+          // Primer login con Google: crear perfil
+          const names = (user.displayName || '').split(' ');
+          const profile = {
+            name: names[0] || '',
+            lastname: names.slice(1).join(' ') || '',
+            email: user.email,
+            phone: user.phoneNumber || '',
+            city: '', bio: '', gotas: 0, streak: 0, progress: {}
+          };
+          await db.collection('users').doc(user.uid).set(profile);
+          safeSet(PROFILE_KEY, JSON.stringify(profile));
+
+          // Registrar como miembro
+          await db.collection('members').add({
+            uid: user.uid,
+            name: user.displayName || user.email,
+            email: user.email,
+            plan: 'Premium', status: 'active',
+            joined: new Date().toISOString().split('T')[0],
+            courses: 0
+          });
+        } else {
+          safeSet(PROFILE_KEY, JSON.stringify(profileDoc.data()));
+        }
+
+        safeSet(AUTH_KEY, JSON.stringify({ email: user.email, uid: user.uid, loggedAt: Date.now() }));
+        await loadAllDataFromFirestore();
+        enterApp();
+      } catch (err) {
+        console.error('Google login error:', err);
+        if (err.code !== 'auth/popup-closed-by-user') {
+          showToast('Error con Google: ' + (err.message || err.code));
+        }
+      }
     }
 
     function enterApp() {
@@ -5893,7 +6037,6 @@
 
     async function markLessonComplete(courseId, lessonId) {
       let completed = _currentUserProgress[courseId] || [];
-
       if (!completed.includes(lessonId)) {
         completed.push(lessonId);
         _currentUserProgress[courseId] = completed;
@@ -6484,6 +6627,7 @@
       const current = getGotas();
       const newTotal = current + amount;
       safeSet(GOTAS_KEY, String(newTotal));
+      try{const u=auth.currentUser;if(u)db.collection('users').doc(u.uid).set({gotas:newTotal},{merge:true})}catch(e){}
       try { const u = auth.currentUser; if(u) db.collection('users').doc(u.uid).set({gotas:newTotal},{merge:true}); } catch(e) {}
 
       const log = getGotasLog();
@@ -6879,6 +7023,20 @@
     // ─── AUTO-LOGIN CON FIREBASE ───
     auth.onAuthStateChanged(async function(user) {
       if (user) {
+        try {
+          const pDoc = await db.collection('users').doc(user.uid).get();
+          if (pDoc.exists) safeSet(PROFILE_KEY, JSON.stringify(pDoc.data()));
+        } catch(e) {}
+        safeSet(AUTH_KEY, JSON.stringify({ email:user.email, uid:user.uid, loggedAt:Date.now() }));
+        await loadAllDataFromFirestore();
+        document.getElementById('authScreen').classList.remove('active');
+        document.getElementById('appScreen').classList.add('active');
+        enterApp();
+      }
+    });
+    // ─── AUTO-LOGIN CON FIREBASE ───
+    auth.onAuthStateChanged(async function(user) {
+      if (user) {
         console.log('✅ Firebase Auth: sesión activa -', user.email);
         try {
           const pDoc = await db.collection('users').doc(user.uid).get();
@@ -7005,4 +7163,95 @@
 
   <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
 </body>
+    // ═══ FIRESTORE: Lee datos desde Firebase Cloud Firestore ═══
+    const FS_COL = {
+      courses: 'courses', webinars: 'webinars', pdfs: 'pdfs',
+      news: 'news', notifs: 'notifications', members: 'members'
+    };
+
+    async function fsRead(col) {
+      try {
+        const snap = await db.collection(col).get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch(e) { console.error('Firestore read:', col, e); return []; }
+    }
+
+    // Legacy fallback
+    function syncRead(key) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : null; } catch(e) { return null; } }
+
+    // ═══ DATOS GLOBALES (se cargan async desde Firestore) ═══
+    let COURSES = [];
+    let WEBINARS = [];
+    let PDFS = [];
+    let NEWS = [];
+    let NOTIFS = [];
+    let _currentUserProgress = {};
+
+    async function loadAllDataFromFirestore() {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const uDoc = await db.collection('users').doc(user.uid).get();
+          const ud = uDoc.exists ? uDoc.data() : {};
+          _currentUserProgress = ud.progress || {};
+          if (ud.gotas !== undefined) try { localStorage.setItem('dermalysse_gotas', String(ud.gotas)); } catch(e) {}
+        } catch(e) { console.error('Error loading user:', e); }
+      }
+
+      const raw = {
+        courses: await fsRead(FS_COL.courses),
+        webinars: await fsRead(FS_COL.webinars),
+        pdfs: await fsRead(FS_COL.pdfs),
+        news: await fsRead(FS_COL.news),
+        notifs: await fsRead(FS_COL.notifs)
+      };
+
+      COURSES = raw.courses.filter(c => c.status === 'published').map(c => {
+        const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
+        const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
+        const comp = _currentUserProgress[c.id] || [];
+        const total = (c.lessons||[]).length;
+        const pct = total > 0 ? Math.round((comp.length / total) * 100) : 0;
+        return {
+          id: c.id, name: c.name,
+          cat: (c.cat||'').toLowerCase().replace(/í/g,'i').replace(/é/g,'e'),
+          duration: durText, level: c.level, progress: pct,
+          description: c.desc || (c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.'),
+          instructor: c.instructor || '', img: c.img || '', temario: c.temario || '',
+          lessons: (c.lessons||[]).map((l,i) => ({
+            id: i+1, title: l.name, duration: l.dur || '',
+            completed: comp.includes(i+1),
+            current: !comp.includes(i+1) && (i === 0 || comp.includes(i)),
+            locked: i > 0 && !comp.includes(i), drive: l.drive || ''
+          }))
+        };
+      });
+
+      WEBINARS = raw.webinars.filter(w => w.status === 'scheduled').map(w => {
+        const d = new Date(w.date);
+        return { day: String(d.getDate()), month: d.toLocaleString('es-MX',{month:'short'}).replace('.',''),
+          dateISO: w.date, title: w.title, time: d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
+          duration: w.duration, speaker: w.speaker, live: w.live||'', drive: w.drive||'', img: w.img||'' };
+      });
+
+      PDFS = raw.pdfs.map(p => ({ name: p.name, pages: p.pages,
+        size: Math.round(p.pages*0.15*10)/10+' MB', drive: p.drive||'', img: p.img||'' }));
+
+      NEWS = raw.news.filter(n => n.status === 'published').map(n => {
+        const da = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
+        return { cat: n.cat, title: n.title, excerpt: n.title,
+          date: da===0?'Hoy':da===1?'Ayer':'Hace '+da+' días',
+          author: n.author, img: n.drive||'', isAdmin: true, link: '' };
+      });
+
+      NOTIFS = raw.notifs.slice(0,10).map(n => {
+        const icons = {curso:'book',vivo:'play',pdf:'file',promo:'tag'};
+        const da = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
+        return { unread: da<3, icon: icons[n.type]||'bell', title: n.title, text: n.msg,
+          time: da===0?'Hoy':da===1?'Ayer':'Hace '+da+' días' };
+      });
+
+      console.log('✅ Datos cargados desde Firestore:', COURSES.length, 'cursos,', WEBINARS.length, 'webinars');
+    }
+
 </html>
