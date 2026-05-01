@@ -5298,73 +5298,109 @@
       };
     });
 
-    /* ═══ LOGROS (demo — modifica este array para personalizar) ═══ */
-    const LOGROS = [
-      {
-        id: 'lg-01',
-        icon: '🎓',
-        title: 'Primer curso completado',
-        desc: 'Terminaste tu primer curso dentro del club.',
-        progress: 100,
-        status: 'unlocked'
-      },
-      {
-        id: 'lg-02',
-        icon: '🔥',
-        title: 'Racha de 7 días',
-        desc: 'Ingresaste al club 7 días seguidos.',
-        progress: 100,
-        status: 'unlocked'
-      },
-      {
-        id: 'lg-03',
-        icon: '📚',
-        title: 'Estudiante dedicado',
-        desc: 'Completa 3 cursos para desbloquear este logro.',
-        progress: 65,
-        status: 'in-progress'
-      },
-      {
-        id: 'lg-04',
-        icon: '🎥',
-        title: 'Fan de los webinars',
-        desc: 'Asiste a 5 webinars en vivo.',
-        progress: 40,
-        status: 'in-progress'
-      },
-      {
-        id: 'lg-05',
-        icon: '📝',
-        title: 'Perfil completo',
-        desc: 'Llena todos los campos de tu perfil.',
-        progress: 100,
-        status: 'unlocked'
-      },
-      {
-        id: 'lg-06',
-        icon: '⭐',
-        title: 'Miembro estrella',
-        desc: 'Completa todos los cursos disponibles.',
-        progress: 0,
-        status: 'locked'
-      },
-      {
-        id: 'lg-07',
-        icon: '💬',
-        title: 'Voz activa',
-        desc: 'Participa en 3 sesiones de preguntas y respuestas.',
-        progress: 0,
-        status: 'locked'
-      },
-      {
-        id: 'lg-08',
-        icon: '🏆',
-        title: 'Maestría total',
-        desc: 'Obtén todos los logros anteriores.',
-        progress: 0,
-        status: 'locked'
-      }
+    /* ═══ LOGROS (12 logros dinámicos — tracking automático) ═══ */
+    let _userAchievements = { coursesCompleted:0, forumPosts:0, forumReplies:0, pdfsDownloaded:0, webinarsAttended:0, profileComplete:false, loginStreak:0 };
+
+    const LOGROS_CONFIG = [
+      { id:'lg-01', icon:'🎯', title:'Primer paso', desc:'Completa tu primer curso.', type:'courses', target:1 },
+      { id:'lg-02', icon:'📚', title:'Estudiante dedicado', desc:'Completa 3 cursos.', type:'courses', target:3 },
+      { id:'lg-03', icon:'⚡', title:'Medio camino', desc:'Completa 6 cursos.', type:'courses', target:6 },
+      { id:'lg-04', icon:'🧠', title:'Casi experto', desc:'Completa 9 cursos.', type:'courses', target:9 },
+      { id:'lg-05', icon:'👑', title:'Maestro Dermalysse', desc:'Completa los 12 cursos.', type:'courses', target:12 },
+      { id:'lg-06', icon:'✏️', title:'Bienvenido/a', desc:'Completa todos los campos de tu perfil.', type:'profile', target:1 },
+      { id:'lg-07', icon:'🔍', title:'Explorador', desc:'Visita todas las secciones del Club.', type:'sections', target:1 },
+      { id:'lg-08', icon:'💬', title:'Participativo', desc:'Publica tu primer tema en el foro.', type:'forumPosts', target:1 },
+      { id:'lg-09', icon:'🗣️', title:'Voz activa', desc:'Publica 5 temas o respuestas en el foro.', type:'forumTotal', target:5 },
+      { id:'lg-10', icon:'🔥', title:'Maratón', desc:'Inicia sesión 7 días seguidos.', type:'streak', target:7 },
+      { id:'lg-11', icon:'📡', title:'En vivo', desc:'Asiste a tu primer webinar.', type:'webinars', target:1 },
+      { id:'lg-12', icon:'📄', title:'Lector dedicado', desc:'Descarga 5 PDFs.', type:'pdfs', target:5 }
     ];
+
+    function computeLogros() {
+      const a = _userAchievements;
+      return LOGROS_CONFIG.map(cfg => {
+        let current = 0;
+        switch(cfg.type) {
+          case 'courses': current = a.coursesCompleted || 0; break;
+          case 'profile': current = a.profileComplete ? 1 : 0; break;
+          case 'sections': current = a.sectionsVisited ? 1 : 0; break;
+          case 'forumPosts': current = a.forumPosts || 0; break;
+          case 'forumTotal': current = (a.forumPosts||0) + (a.forumReplies||0); break;
+          case 'streak': current = a.loginStreak || 0; break;
+          case 'webinars': current = a.webinarsAttended || 0; break;
+          case 'pdfs': current = a.pdfsDownloaded || 0; break;
+        }
+        const progress = Math.min(100, Math.round((current / cfg.target) * 100));
+        const status = progress >= 100 ? 'unlocked' : progress > 0 ? 'in-progress' : 'locked';
+        return { ...cfg, progress, status, current };
+      });
+    }
+
+    async function loadAchievements() {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists && doc.data().achievements) {
+          _userAchievements = doc.data().achievements;
+        }
+        // Calcular cursos completados desde progreso
+        const progress = doc.exists ? (doc.data().progress || {}) : {};
+        let completed = 0;
+        COURSES.forEach(course => {
+          const lessonsDone = progress[course.id] || [];
+          if (course.lessons && course.lessons.length > 0 && lessonsDone.length >= course.lessons.length) {
+            completed++;
+          }
+        });
+        _userAchievements.coursesCompleted = completed;
+
+        // Verificar perfil completo
+        const profile = doc.exists ? doc.data() : {};
+        _userAchievements.profileComplete = !!(profile.name && profile.lastname && profile.email && profile.phone && profile.city);
+
+        // Calcular streak
+        await updateStreak();
+      } catch(e) { console.error('Load achievements error:', e); }
+    }
+
+    async function saveAchievements() {
+      try {
+        const user = auth.currentUser;
+        if (user) await db.collection('users').doc(user.uid).set({ achievements: _userAchievements }, { merge: true });
+      } catch(e) {}
+    }
+
+    async function updateStreak() {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const today = new Date().toISOString().split('T')[0];
+        const doc = await db.collection('users').doc(user.uid).get();
+        const data = doc.exists ? doc.data() : {};
+        const lastLogin = data._lastLoginDate || '';
+        let streak = _userAchievements.loginStreak || 0;
+
+        if (lastLogin === today) return; // ya se contó hoy
+
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        if (lastLogin === yesterday) {
+          streak++;
+        } else if (lastLogin !== today) {
+          streak = 1; // reiniciar
+        }
+
+        _userAchievements.loginStreak = streak;
+        await db.collection('users').doc(user.uid).set({ _lastLoginDate: today, achievements: { loginStreak: streak } }, { merge: true });
+      } catch(e) {}
+    }
+
+    // Track: incrementar contador de logros
+    async function trackAchievement(type, increment) {
+      if (increment === undefined) increment = 1;
+      _userAchievements[type] = (_userAchievements[type] || 0) + increment;
+      await saveAchievements();
+    }
 
     const AUTH_KEY = 'dermalysse_club_user';
     const PROFILE_KEY = 'dermalysse_club_profile';
@@ -5641,6 +5677,8 @@
       } catch(e) { console.error('Error guardando perfil:', e); }
       hydrateProfile();
       showToast('Perfil actualizado');
+      // Recalcular logro de perfil completo
+      try { const p = JSON.parse(safeGet(PROFILE_KEY)||'{}'); if(p.name&&p.lastname&&p.email&&p.phone&&p.city) { _userAchievements.profileComplete=true; saveAchievements(); } } catch(e) {}
       return false;
     }
 
@@ -6402,6 +6440,7 @@
         document.getElementById('foroNewTitle').value = '';
         document.getElementById('foroNewBody').value = '';
         showToast('Tema publicado');
+        trackAchievement('forumPosts');
         renderForo();
       } catch(e) { showToast('Error: ' + e.message); }
     }
@@ -6464,6 +6503,7 @@
         // Incrementar contador
         await db.collection('forum').doc(topicId).update({ replyCount: firebase.firestore.FieldValue.increment(1) });
         showToast('Respuesta publicada');
+        trackAchievement('forumReplies');
         viewForumTopic(topicId);
       } catch(e) { showToast('Error: ' + e.message); }
     }
@@ -6652,7 +6692,9 @@
     }
 
     // ─── Logros ───
-    function renderLogros() {
+    async function renderLogros() {
+      await loadAchievements();
+      const LOGROS = computeLogros();
       const grid = document.getElementById('logrosGrid');
       const countEl = document.getElementById('logrosCount');
       const labelEl = document.getElementById('logrosLabel');
@@ -6666,27 +6708,24 @@
       grid.innerHTML = LOGROS.map(l => {
         const pct = l.progress || 0;
         let statusHTML = '';
+        let progressDetail = '';
         if (l.status === 'unlocked') {
-          statusHTML = `<div class="logro-status"><span class="logro-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Completado</div>`;
+          statusHTML = '<div class="logro-status">Completado</div>';
         } else if (l.status === 'in-progress') {
-          statusHTML = `<div class="logro-status">${pct}% completado</div>`;
+          progressDetail = l.target > 1 ? ' (' + l.current + '/' + l.target + ')' : '';
+          statusHTML = '<div class="logro-status">' + pct + '% completado' + progressDetail + '</div>';
         } else {
-          statusHTML = `<div class="logro-status">🔒 Bloqueado</div>`;
+          statusHTML = '<div class="logro-status">Bloqueado</div>';
         }
 
-        return `
-          <div class="logro-card ${l.status}">
-            <div class="logro-icon">${l.icon}</div>
-            <div class="logro-body">
-              <div class="logro-title">${l.title}</div>
-              <div class="logro-desc">${l.desc}</div>
-              <div class="logro-progress-wrap">
-                <div class="logro-progress-fill" style="width:${pct}%;"></div>
-              </div>
-              ${statusHTML}
-            </div>
-          </div>
-        `;
+        return '<div class="logro-card ' + l.status + '">' +
+          '<div class="logro-icon">' + l.icon + '</div>' +
+          '<div class="logro-body">' +
+            '<div class="logro-title">' + l.title + '</div>' +
+            '<div class="logro-desc">' + l.desc + '</div>' +
+            '<div class="logro-progress-wrap"><div class="logro-progress-fill" style="width:' + pct + '%;"></div></div>' +
+            statusHTML +
+          '</div></div>';
       }).join('');
     }
 
