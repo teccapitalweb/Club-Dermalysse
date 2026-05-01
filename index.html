@@ -3956,6 +3956,11 @@
     .thankyou-text { font-size: .95rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5; }
     .thankyou-btn { padding: .85rem 2rem; border: none; border-radius: 10px; background: var(--azul-main); color: white; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; }
     .confetti { position: fixed; top: -10px; z-index: 10000; pointer-events: none; }
+
+    .course-card-locked { position: relative; opacity: .7; }
+    .course-card-locked::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.4); border-radius: var(--radius-sm); z-index: 2; }
+    .course-lock-badge { position: absolute; top: .75rem; right: .75rem; background: var(--bg-surface); border: 1px solid var(--border-soft); border-radius: 8px; padding: .3rem .6rem; font-size: .75rem; font-weight: 600; color: var(--text-muted); z-index: 3; display: flex; align-items: center; gap: .3rem; }
+    .course-lock-badge svg { width: 12px; height: 12px; }
     /* ═══ CONFIG: cambiar contraseña modal ═══ */
     .pw-change-form { margin-top: 1rem; }
     .pw-change-form .form-field { margin-bottom: .75rem; }
@@ -5788,6 +5793,35 @@
     // ─── Detalle del curso ───
     let currentCourseId = null;
 
+
+    // ═══ SISTEMA DE LIBERACIÓN DE CURSOS ═══
+    function isCourseUnlocked(course) {
+      if (!course.releaseType || course.releaseType === 'immediate') return { unlocked: true };
+      if (_userSubscription.status !== 'active') return { unlocked: false, reason: 'Suscríbete para acceder' };
+
+      if (course.releaseType === 'drip') {
+        // Goteo: se abre cada 15 días según orden, desde fecha de suscripción
+        const subStart = _userSubscription.subscribedAt ? new Date(_userSubscription.subscribedAt) : new Date();
+        const daysSinceSub = Math.floor((Date.now() - subStart.getTime()) / (1000*60*60*24));
+        const unlockedOrder = Math.floor(daysSinceSub / 15) + 1; // +1 para que el día 0 desbloquee el orden 1
+        const order = course.order || 999;
+        if (unlockedOrder >= order) return { unlocked: true };
+        const daysLeft = (order - 1) * 15 - daysSinceSub;
+        return { unlocked: false, reason: 'Se desbloquea en ' + daysLeft + ' días', daysLeft };
+      }
+
+      if (course.releaseType === 'scheduled') {
+        // Fecha fija: se abre en la fecha que puso el admin
+        if (!course.unlockDate) return { unlocked: true };
+        const unlock = new Date(course.unlockDate);
+        if (Date.now() >= unlock.getTime()) return { unlocked: true };
+        const daysLeft = Math.ceil((unlock.getTime() - Date.now()) / (1000*60*60*24));
+        return { unlocked: false, reason: 'Disponible el ' + unlock.toLocaleDateString('es-MX', {day:'numeric',month:'long',year:'numeric'}), daysLeft };
+      }
+
+      return { unlocked: true };
+    }
+
     function openCourse(courseId) {
       if (_userSubscription.status !== 'active') {
         showToast('Suscríbete para acceder a los cursos');
@@ -5797,6 +5831,12 @@
       currentCourseId = courseId;
       const course = COURSES.find(c => c.id === courseId);
       if (!course) return;
+      // Verificar si el curso está desbloqueado
+      const unlock = isCourseUnlocked(course);
+      if (!unlock.unlocked) {
+        showToast(unlock.reason);
+        return;
+      }
 
       // Hero visual con imagen del curso (Drive o local)
       const visual = document.getElementById('courseDetailVisual');
@@ -7343,6 +7383,7 @@
         if (!doc.exists) return;
         const sub = doc.data().subscription || {};
         _userSubscription = sub;
+        if (!sub.subscribedAt && sub.status === 'active') _userSubscription.subscribedAt = sub.updatedAt || new Date().toISOString();
 
         if (sub.status === 'active') {
           // Mostrar info de suscripción activa
