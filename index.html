@@ -4247,10 +4247,6 @@
         </button>
         <div style="flex:1;"></div>
         <div class="topbar-actions">
-          <div class="gotas-display" id="gotasTopbar" title="Tus gotas Dermalysse">
-            <span class="gotas-icon">💧</span>
-            <span id="gotasCount">0</span>
-          </div>
           <div class="dark-toggle-wrap">
             <button class="icon-btn" onclick="toggleDarkMode()" aria-label="Modo oscuro" id="darkModeBtn">
               <svg class="dark-toggle-icon" id="darkModeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -7529,7 +7525,12 @@
           showToast('Suscripción cancelada. Acceso hasta el final del período');
           _userSubscription.cancelAtPeriodEnd = true;
           _userSubscription.currentPeriodEnd = data.currentPeriodEnd;
-          checkSubscription();
+          // Actualizar UI directamente (sin esperar Firestore)
+          document.getElementById('btnCancelSub').style.display = 'none';
+          document.getElementById('subCancelMsg').style.display = '';
+          document.getElementById('subCancelDate').textContent = new Date(data.currentPeriodEnd).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+          document.getElementById('subStatus').innerHTML = '● Cancelación programada';
+          document.getElementById('subStatus').style.color = '#b91c1c';
         } else {
           showToast('Error: ' + (data.error || ''));
           btn.disabled = false;
@@ -7556,7 +7557,13 @@
         if (data.success) {
           showToast('Suscripción reactivada');
           _userSubscription.cancelAtPeriodEnd = false;
-          checkSubscription();
+          // Actualizar UI directamente
+          document.getElementById('btnCancelSub').style.display = '';
+          document.getElementById('btnCancelSub').disabled = false;
+          document.getElementById('btnCancelSub').textContent = 'Cancelar suscripción';
+          document.getElementById('subCancelMsg').style.display = 'none';
+          document.getElementById('subStatus').innerHTML = '● Activa';
+          document.getElementById('subStatus').style.color = 'var(--success)';
         } else {
           showToast('Error: ' + (data.error || ''));
         }
