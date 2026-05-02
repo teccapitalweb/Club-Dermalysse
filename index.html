@@ -5462,8 +5462,7 @@
           showToast('¡Bienvenido/a al Club Dermalysse!');
         } else { safeSet(PROFILE_KEY, JSON.stringify(pDoc.data())); }
         safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
-        await _loadFirestoreData();
-        enterApp();
+        // onAuthStateChanged se encarga de cargar datos y enterApp
       } catch(err) { if(err.code!=='auth/popup-closed-by-user') showToast('Error: '+(err.message||err.code)); }
     }
 
@@ -5481,8 +5480,7 @@
         const pDoc = await db.collection('users').doc(cred.user.uid).get();
         safeSet(PROFILE_KEY, JSON.stringify(pDoc.exists ? pDoc.data() : {name:'Miembro',lastname:'',email,phone:'',city:'',bio:''}));
         safeSet(AUTH_KEY, JSON.stringify({email:cred.user.email,uid:cred.user.uid,loggedAt:Date.now()}));
-        await _loadFirestoreData();
-        enterApp();
+        // onAuthStateChanged se encarga de cargar datos y enterApp
       } catch(err) {
         if(err.code==='auth/user-not-found') showToast('No existe cuenta con ese correo');
         else if(err.code==='auth/wrong-password'||err.code==='auth/invalid-credential') showToast('Contraseña incorrecta');
@@ -5530,8 +5528,7 @@
         await db.collection('members').doc(user.uid).set({id:user.uid,uid:user.uid,name:name+' '+lastname,email,plan:'Free',status:'active',joined:new Date().toISOString().split('T')[0],courses:0});
         safeSet(PROFILE_KEY, JSON.stringify(profile));
         safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
-        await _loadFirestoreData();
-        enterApp();
+        // onAuthStateChanged se encarga de cargar datos y enterApp
         showToast('¡Bienvenido/a al Club Dermalysse!');
       } catch(err) {
         if(err.code==='auth/email-already-in-use') showToast('Ya existe cuenta con ese correo');
@@ -7699,25 +7696,48 @@
       try {
         const doc = await db.collection('config').doc('platform').get();
         if (doc.exists) _platformConfig = { ..._platformConfig, ...doc.data() };
-      } catch(e) {}
+      } catch(e) { console.log('Config: usando defaults'); }
+    }
+
+    function showMaintenanceScreen() {
+      document.getElementById('authScreen').classList.remove('active');
+      document.getElementById('appScreen').classList.remove('active');
+      // Crear pantalla de mantenimiento si no existe
+      if (!document.getElementById('maintenanceScreen')) {
+        const div = document.createElement('div');
+        div.id = 'maintenanceScreen';
+        div.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-main,#faf7f2);padding:2rem;';
+        div.innerHTML = '<div style="text-align:center;max-width:400px;"><div style="font-size:3rem;margin-bottom:1rem;">🔧</div><h2 style="font-family:DM Sans,sans-serif;color:var(--text-primary,#3d2e1e);margin-bottom:.75rem;">Club en mantenimiento</h2><p style="color:var(--text-muted,#9a8e7f);font-size:.95rem;line-height:1.6;">Estamos realizando mejoras en la plataforma. Vuelve a intentar en unos minutos.</p></div>';
+        document.body.appendChild(div);
+      }
+      document.getElementById('maintenanceScreen').style.display = 'flex';
+    }
+
+    function hideMaintenanceScreen() {
+      const ms = document.getElementById('maintenanceScreen');
+      if (ms) ms.style.display = 'none';
     }
 
     // ─── AUTO-LOGIN FIREBASE ───
     auth.onAuthStateChanged(async function(user) {
       await loadPlatformConfig();
-      if (_platformConfig.maintenance && user) {
-        // Verificar si es admin
-        try {
-          const adminDoc = await db.collection('admins').doc(user.uid).get();
-          if (!adminDoc.exists) {
-            document.getElementById('authScreen').classList.add('active');
-            document.getElementById('appScreen').classList.remove('active');
-            showToast('El Club está en mantenimiento. Intenta más tarde.');
+
+      if (user) {
+        // Check mantenimiento
+        if (_platformConfig.maintenance) {
+          try {
+            const adminDoc = await db.collection('admins').doc(user.uid).get();
+            if (!adminDoc.exists) {
+              showMaintenanceScreen();
+              return;
+            }
+          } catch(e) {
+            showMaintenanceScreen();
             return;
           }
-        } catch(e) {}
-      }
-      if (user) {
+        }
+
+        hideMaintenanceScreen();
         safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
         await _loadFirestoreData();
         document.getElementById('authScreen').classList.remove('active');
