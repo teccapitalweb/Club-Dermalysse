@@ -5452,7 +5452,7 @@
         if (!pDoc.exists) {
           const profile = { name:user.displayName?user.displayName.split(' ')[0]:'Miembro', lastname:user.displayName?user.displayName.split(' ').slice(1).join(' '):'', email:user.email, phone:'',city:'',bio:'',gotas:0,streak:0,progress:{},photo:user.photoURL||'' };
           await db.collection('users').doc(user.uid).set(profile);
-          await db.collection('members').add({uid:user.uid,name:user.displayName||'Miembro',email:user.email,plan:'Premium',status:'active',joined:new Date().toISOString().split('T')[0],courses:0});
+          await db.collection('members').doc(user.uid).set({id:user.uid,uid:user.uid,name:user.displayName||'Miembro',email:user.email,plan:'Free',status:'active',joined:new Date().toISOString().split('T')[0],courses:0});
           safeSet(PROFILE_KEY, JSON.stringify(profile));
           showToast('¡Bienvenido/a al Club Dermalysse!');
         } else { safeSet(PROFILE_KEY, JSON.stringify(pDoc.data())); }
@@ -5518,7 +5518,7 @@
         const user = cred.user;
         const profile = { name, lastname, email, phone, city:'', bio:'', gotas:0, streak:0, progress:{} };
         await db.collection('users').doc(user.uid).set(profile);
-        await db.collection('members').add({uid:user.uid,name:name+' '+lastname,email,plan:'Premium',status:'active',joined:new Date().toISOString().split('T')[0],courses:0});
+        await db.collection('members').doc(user.uid).set({id:user.uid,uid:user.uid,name:name+' '+lastname,email,plan:'Free',status:'active',joined:new Date().toISOString().split('T')[0],courses:0});
         safeSet(PROFILE_KEY, JSON.stringify(profile));
         safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
         await _loadFirestoreData();
