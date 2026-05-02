@@ -5450,6 +5450,11 @@
         const user = result.user;
         const pDoc = await db.collection('users').doc(user.uid).get();
         if (!pDoc.exists) {
+          if (_platformConfig.openRegistration === false) {
+            await auth.signOut();
+            showToast('El registro está cerrado temporalmente');
+            return;
+          }
           const profile = { name:user.displayName?user.displayName.split(' ')[0]:'Miembro', lastname:user.displayName?user.displayName.split(' ').slice(1).join(' '):'', email:user.email, phone:'',city:'',bio:'',gotas:0,streak:0,progress:{},photo:user.photoURL||'' };
           await db.collection('users').doc(user.uid).set(profile);
           await db.collection('members').doc(user.uid).set({id:user.uid,uid:user.uid,name:user.displayName||'Miembro',email:user.email,plan:'Free',status:'active',joined:new Date().toISOString().split('T')[0],courses:0});
@@ -5488,6 +5493,10 @@
 
     async function handleRegister(e) {
       if (e && e.preventDefault) e.preventDefault();
+      if (_platformConfig.openRegistration === false) {
+        showToast('El registro está cerrado temporalmente');
+        return false;
+      }
       const name = (document.getElementById('regName').value || '').trim();
       const lastname = (document.getElementById('regLastname').value || '').trim();
       const email = (document.getElementById('regEmail').value || '').trim();
@@ -7683,8 +7692,31 @@
       }
     }
 
+    // ═══ PLATFORM CONFIG (maintenance, registration) ═══
+    let _platformConfig = { maintenance: false, openRegistration: true, notifNewMember: true };
+
+    async function loadPlatformConfig() {
+      try {
+        const doc = await db.collection('config').doc('platform').get();
+        if (doc.exists) _platformConfig = { ..._platformConfig, ...doc.data() };
+      } catch(e) {}
+    }
+
     // ─── AUTO-LOGIN FIREBASE ───
     auth.onAuthStateChanged(async function(user) {
+      await loadPlatformConfig();
+      if (_platformConfig.maintenance && user) {
+        // Verificar si es admin
+        try {
+          const adminDoc = await db.collection('admins').doc(user.uid).get();
+          if (!adminDoc.exists) {
+            document.getElementById('authScreen').classList.add('active');
+            document.getElementById('appScreen').classList.remove('active');
+            showToast('El Club está en mantenimiento. Intenta más tarde.');
+            return;
+          }
+        } catch(e) {}
+      }
       if (user) {
         safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
         await _loadFirestoreData();
