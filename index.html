@@ -5432,7 +5432,15 @@
         const user = auth.currentUser;
         if (user) {
           const ud = await db.collection('users').doc(user.uid).get();
-          if (ud.exists) { safeSet(PROFILE_KEY, JSON.stringify(ud.data())); if(ud.data().gotas!==undefined)safeSet('dermalysse_gotas',String(ud.data().gotas)); }
+          if (ud.exists) {
+            safeSet(PROFILE_KEY, JSON.stringify(ud.data()));
+            if(ud.data().gotas!==undefined)safeSet('dermalysse_gotas',String(ud.data().gotas));
+            // Cargar progreso de cursos desde Firestore
+            const progress = ud.data().progress || {};
+            Object.keys(progress).forEach(courseId => {
+              safeSet('dermalysse_progress_' + courseId, JSON.stringify(progress[courseId]));
+            });
+          }
         }
         const cols={courses:'dermalysse_sync_courses',webinars:'dermalysse_sync_webinars',pdfs:'dermalysse_sync_pdfs',news:'dermalysse_sync_news',notifications:'dermalysse_sync_notifs',members:'dermalysse_sync_members'};
         for(const[col,lsKey] of Object.entries(cols)){
@@ -6065,6 +6073,16 @@
       if (!completed.includes(lessonId)) {
         completed.push(lessonId);
         localStorage.setItem(progressKey, JSON.stringify(completed));
+
+        // Sincronizar progreso con Firestore
+        try {
+          const user = auth.currentUser;
+          if (user) {
+            const progressUpdate = {};
+            progressUpdate['progress.' + courseId] = completed;
+            db.collection('users').doc(user.uid).set(progressUpdate, { merge: true });
+          }
+        } catch(e) { console.error('Progress sync error:', e); }
 
         const course = COURSES.find(c => c.id === courseId);
         if (course) {
