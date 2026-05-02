@@ -6101,7 +6101,7 @@
 
           if (course.progress === 100) {
             try { launchConfetti(); } catch(e) {}
-            try { addGotas(100, 'Curso completado'); } catch(e) {}
+            // gotas removidas
             showCertificatePopup(course);
             // Mostrar banner
             var banner2 = document.getElementById('courseCompleteBanner');
@@ -6129,7 +6129,14 @@
       var course = COURSES.find(function(c) { return c.id === currentCourseId; });
       if (!course) { showToast('Selecciona un curso'); return; }
       var userName = 'Miembro del Club';
-      try { var profile = JSON.parse(localStorage.getItem('dermalysse_profile')); if (profile) userName = (profile.name + ' ' + (profile.lastname || '')).trim(); } catch(e) {}
+      try {
+        var profile = JSON.parse(localStorage.getItem('dermalysse_profile'));
+        if (profile && profile.name && profile.name !== 'Miembro') {
+          userName = (profile.name + ' ' + (profile.lastname || '')).trim();
+        } else if (auth.currentUser && auth.currentUser.displayName) {
+          userName = auth.currentUser.displayName;
+        }
+      } catch(e) {}
       var today = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
       var code = 'DRML-' + new Date().getFullYear() + '-' + new Date().toISOString().slice(5,7) + new Date().toISOString().slice(8,10) + '-' + Date.now().toString(36).toUpperCase().slice(-5);
       var numClases = course.lessons ? course.lessons.length : 0;
