@@ -6223,12 +6223,13 @@
         if (wrapper && cert && window.innerWidth < 768) {
           var containerW = wrapper.offsetWidth;
           var certW = 960;
+          var scale = containerW / certW;
           cert.style.width = certW + 'px';
           cert.style.transformOrigin = 'top left';
-          cert.style.transform = 'scale(' + (containerW / certW) + ')';
-          var scaledH = certW / 1.414 * (containerW / certW);
-          wrapper.style.height = (scaledH + 80) + 'px';
-          wrapper.style.overflow = 'hidden';
+          cert.style.transform = 'scale(' + scale + ')';
+          // Adjust wrapper height to match scaled certificate
+          var originalH = certW / 1.414;
+          cert.style.marginBottom = '-' + (originalH - (originalH * scale)) + 'px';
         }
       })();
       try {
