@@ -5433,10 +5433,21 @@
         if (user) {
           const ud = await db.collection('users').doc(user.uid).get();
           if (ud.exists) {
-            safeSet(PROFILE_KEY, JSON.stringify(ud.data()));
-            if(ud.data().gotas!==undefined)safeSet('dermalysse_gotas',String(ud.data().gotas));
+            const data = ud.data();
+            // Guardar solo campos de perfil en PROFILE_KEY
+            const profileData = {
+              name: data.name || '',
+              lastname: data.lastname || '',
+              email: data.email || '',
+              phone: data.phone || '',
+              city: data.city || '',
+              bio: data.bio || '',
+              photo: data.photo || ''
+            };
+            safeSet(PROFILE_KEY, JSON.stringify(profileData));
+            if(data.gotas!==undefined)safeSet('dermalysse_gotas',String(data.gotas));
             // Cargar progreso de cursos desde Firestore
-            const progress = ud.data().progress || {};
+            const progress = data.progress || {};
             Object.keys(progress).forEach(courseId => {
               safeSet('dermalysse_progress_' + courseId, JSON.stringify(progress[courseId]));
             });
@@ -5468,7 +5479,7 @@
           await db.collection('members').doc(user.uid).set({id:user.uid,uid:user.uid,name:user.displayName||'Miembro',email:user.email,plan:'Free',status:'active',joined:new Date().toISOString().split('T')[0],courses:0});
           safeSet(PROFILE_KEY, JSON.stringify(profile));
           showToast('¡Bienvenido/a al Club Dermalysse!');
-        } else { safeSet(PROFILE_KEY, JSON.stringify(pDoc.data())); }
+        } else { const pd=pDoc.data(); safeSet(PROFILE_KEY, JSON.stringify({name:pd.name||'',lastname:pd.lastname||'',email:pd.email||'',phone:pd.phone||'',city:pd.city||'',bio:pd.bio||''})); }
         safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
         // onAuthStateChanged se encarga de cargar datos y enterApp
       } catch(err) { if(err.code!=='auth/popup-closed-by-user') showToast('Error: '+(err.message||err.code)); }
@@ -5486,7 +5497,8 @@
       try {
         const cred = await auth.signInWithEmailAndPassword(email, pw);
         const pDoc = await db.collection('users').doc(cred.user.uid).get();
-        safeSet(PROFILE_KEY, JSON.stringify(pDoc.exists ? pDoc.data() : {name:'Miembro',lastname:'',email,phone:'',city:'',bio:''}));
+        const pData = pDoc.exists ? pDoc.data() : {};
+        safeSet(PROFILE_KEY, JSON.stringify({name:pData.name||'Miembro',lastname:pData.lastname||'',email:pData.email||email,phone:pData.phone||'',city:pData.city||'',bio:pData.bio||''}));
         safeSet(AUTH_KEY, JSON.stringify({email:cred.user.email,uid:cred.user.uid,loggedAt:Date.now()}));
         // onAuthStateChanged se encarga de cargar datos y enterApp
       } catch(err) {
@@ -5683,8 +5695,24 @@
       // Guardar en Firestore
       try {
         const user = auth.currentUser;
-        if (user) await db.collection('users').doc(user.uid).set(profile, { merge: true });
-      } catch(e) { console.error('Error guardando perfil:', e); }
+        if (user) {
+          await db.collection('users').doc(user.uid).update({
+            name: profile.name,
+            lastname: profile.lastname,
+            email: profile.email,
+            phone: profile.phone,
+            city: profile.city,
+            bio: profile.bio
+          });
+          console.log('✅ Perfil guardado en Firestore');
+        }
+      } catch(e) {
+        // Si el doc no existe, crearlo
+        try {
+          const user = auth.currentUser;
+          if (user) await db.collection('users').doc(user.uid).set(profile, { merge: true });
+        } catch(e2) { console.error('Error guardando perfil:', e2); }
+      }
       hydrateProfile();
       showToast('Perfil actualizado');
       // Recalcular logro de perfil completo
@@ -6130,7 +6158,7 @@
       if (!course) { showToast('Selecciona un curso'); return; }
       var userName = 'Miembro del Club';
       try {
-        var profile = JSON.parse(localStorage.getItem('dermalysse_profile'));
+        var profile = JSON.parse(safeGet(PROFILE_KEY));
         if (profile && profile.name && profile.name !== 'Miembro') {
           userName = (profile.name + ' ' + (profile.lastname || '')).trim();
         } else if (auth.currentUser && auth.currentUser.displayName) {
