@@ -5350,17 +5350,26 @@
       } catch(e) {}
 
       // Buscar noticias en NewsData.io
-      var url = 'https://newsdata.io/api/1/latest?apikey=' + NEWSDATA_KEY
-        + '&q=dermatologia%20OR%20dermatolog%C3%ADa%20OR%20tratamiento%20facial%20OR%20cuidado%20piel%20OR%20cosmetologia%20OR%20estetica%20facial'
-        + '&language=es&size=10';
+      var queries = [
+        '&q=dermatologia&language=es&size=10',
+        '&q=cuidado%20piel&language=es&size=10',
+        '&q=estetica%20facial%20OR%20cosmetologia&language=es&size=10',
+        '&q=skincare%20OR%20dermatology&language=es,en&size=10'
+      ];
+      var baseUrl = 'https://newsdata.io/api/1/latest?apikey=' + NEWSDATA_KEY;
 
-      fetch(url)
+      function tryNewsQuery(idx) {
+        if (idx >= queries.length) {
+          NEWS = _adminNews;
+          try { renderNews(); } catch(e) {}
+          try { renderNewsInicio(); } catch(e) {}
+          return;
+        }
+        fetch(baseUrl + queries[idx])
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          if (data.status !== 'success' || !data.results) {
-            NEWS = _adminNews;
-            try { renderNews(); } catch(e) {}
-            try { renderNewsInicio(); } catch(e) {}
+          if (data.status !== 'success' || !data.results || data.results.length === 0) {
+            tryNewsQuery(idx + 1);
             return;
           }
 
@@ -5396,10 +5405,10 @@
           try { renderNewsInicio(); } catch(e) {}
         })
         .catch(function() {
-          NEWS = _adminNews;
-          try { renderNews(); } catch(e) {}
-          try { renderNewsInicio(); } catch(e) {}
+          tryNewsQuery(idx + 1);
         });
+      }
+      tryNewsQuery(0);
     }
 
     // Notificaciones: transformar formato Admin → Club
