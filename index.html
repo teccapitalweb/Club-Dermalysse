@@ -5568,7 +5568,7 @@
       try { startWebinarCountdown(); } catch(e) { console.error('startWebinarCountdown:', e); }
       try { renderLogros(); } catch(e) { console.error('renderLogros:', e); }
       try { updateStreak(); } catch(e) { console.error('updateStreak:', e); }
-      try { updateGotas(); } catch(e) { console.error('updateGotas:', e); }
+
       try { renderRuta(); } catch(e) { console.error('renderRuta:', e); }
       try { loadDarkMode(); } catch(e) { console.error('loadDarkMode:', e); }
     }
@@ -6232,7 +6232,7 @@
         + 'Ver certificado</button>'
         + '<button id="popupCloseBtn" style="padding:.85rem 1.5rem;background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.92rem;font-weight:500;cursor:pointer;">Seguir explorando</button>'
         + '</div>'
-        + '<p style="margin-top:1.5rem;font-size:.78rem;color:var(--text-muted);">+100 gotas acumuladas 💧</p>'
+        
         + '</div>';
 
       document.body.appendChild(popup);
@@ -6825,8 +6825,8 @@
       if (el) el.textContent = data.count + (data.count === 1 ? ' día' : ' días');
 
       // Bonus gotas por racha
-      if (data.count === 7) addGotas(50, 'Racha de 7 días');
-      if (data.count === 30) addGotas(200, 'Racha de 30 días');
+      // gotas removidas
+      // gotas removidas
     }
 
     // ─── 3. CONFETTI CELEBRACIÓN ───
@@ -6890,7 +6890,7 @@
     window.celebrateCourse = function() {
       launchConfetti();
       showToast('¡Felicidades! Curso completado 🎉');
-      addGotas(100, 'Curso completado');
+      // gotas removidas
     };
 
     // ─── 4. CERTIFICADOS DIGITALES ───
@@ -7039,7 +7039,7 @@
       const last = safeGet(key);
       if (last !== today) {
         safeSet(key, today);
-        setTimeout(() => addGotas(10, 'Ingreso diario al club'), 1500);
+        // gotas removidas
       }
     })();
 
@@ -7429,7 +7429,7 @@
         </div>`;
 
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      addGotas(15, 'Ficha de paciente generada');
+      // gotas removidas
     }
 
     // ─── Init herramientas al entrar ───
