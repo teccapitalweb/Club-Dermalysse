@@ -6177,7 +6177,7 @@
       var ov = document.createElement('div');
       ov.id = 'certOverlay';
       ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;padding:1rem;overflow-y:auto;';
-      var h = '<div style="width:100%;max-width:960px;">'
+      var h = '<div style="width:100%;max-width:960px;" id="certWrapper">'
         + '<div id="certPrintArea" style="background:#fff;aspect-ratio:1.414/1;width:100%;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);">'
         + '<div style="position:absolute;inset:6px;border:3px solid #2e5f7a;border-radius:2px;"></div>'
         + '<div style="position:absolute;inset:14px;border:1px solid #c7b69f;border-radius:1px;"></div>'
@@ -6215,6 +6215,22 @@
         + '</div></div>';
       ov.innerHTML = h;
       document.body.appendChild(ov);
+
+      // Responsive: scale certificate on mobile
+      (function() {
+        var wrapper = document.getElementById('certWrapper');
+        var cert = document.getElementById('certPrintArea');
+        if (wrapper && cert && window.innerWidth < 768) {
+          var containerW = wrapper.offsetWidth;
+          var certW = 960;
+          cert.style.width = certW + 'px';
+          cert.style.transformOrigin = 'top left';
+          cert.style.transform = 'scale(' + (containerW / certW) + ')';
+          var scaledH = certW / 1.414 * (containerW / certW);
+          wrapper.style.height = (scaledH + 80) + 'px';
+          wrapper.style.overflow = 'hidden';
+        }
+      })();
       try {
         var qrData = btoa(unescape(encodeURIComponent(JSON.stringify({n:userName,c:course.name,f:code,d:today,s:numClases,a:catLabel}))));
         var base = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
@@ -6229,9 +6245,15 @@
       ov.onclick = function(e) { if (e.target === ov) ov.remove(); };
       document.getElementById('certDownloadBtn').onclick = function() {
         var area = document.getElementById('certPrintArea');
+        // Reset mobile scaling for print
+        var origStyle = area.style.cssText;
+        area.style.transform = 'none';
+        area.style.width = '100%';
+        var printHTML = area.outerHTML;
+        area.style.cssText = origStyle;
         var w = window.open('', 'print', 'width=1100,height=800');
         if (w) {
-          w.document.write('<!DOCTYPE html><html><head><title>Certificado - ' + course.name + '</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:0;background:#fff}@media print{body{padding:0}@page{size:landscape;margin:0}}</style></head><body>' + area.outerHTML + '</body></html>');
+          w.document.write('<!DOCTYPE html><html><head><title>Certificado - ' + course.name + '</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:0;background:#fff}@media print{body{padding:0}@page{size:landscape;margin:0}}</style></head><body>' + printHTML + '</body></html>');
           w.document.close();
           setTimeout(function(){ w.print(); }, 800);
         } else { showToast('Permite ventanas emergentes para descargar'); }
