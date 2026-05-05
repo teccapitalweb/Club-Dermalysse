@@ -5591,6 +5591,8 @@
             safeSet(PROFILE_KEY, JSON.stringify(profileData));
             if(data.gotas!==undefined)safeSet('dermalysse_gotas',String(data.gotas));
             // Cargar progreso de cursos desde Firestore
+            // Primero limpiar progreso del usuario anterior
+            Object.keys(localStorage).filter(k => k.startsWith('dermalysse_progress_')).forEach(k => localStorage.removeItem(k));
             const progress = data.progress || {};
             Object.keys(progress).forEach(courseId => {
               safeSet('dermalysse_progress_' + courseId, JSON.stringify(progress[courseId]));
