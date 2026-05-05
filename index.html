@@ -6425,12 +6425,11 @@
         var w = window.open('', 'print', 'width=1100,height=800');
         if (w) {
           var isMobile = window.innerWidth < 768;
-          var printCSS = '*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;background:#fff;margin:0;padding:0;overflow:hidden}#certPrintArea{box-shadow:none!important;transform:none!important;max-width:none!important}';
+          var printCSS = '*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;background:#fff;margin:0;padding:0;overflow:hidden}#certPrintArea{box-shadow:none!important;max-width:none!important}';
           if (isMobile) {
-            // Móvil: rotar certificado 90° para forzar landscape en página portrait
-            printCSS += '@page{size:auto;margin:0}body{width:100vw;height:100vh}#certPrintArea{position:fixed;top:0;left:0;width:279mm!important;height:auto!important;aspect-ratio:1.414/1;transform:rotate(90deg) translateY(-100%);transform-origin:top left;}';
+            printCSS += '@page{size:auto;margin:0}body{width:100%;height:100%}#certPrintArea{position:fixed;width:100vh!important;height:100vw!important;aspect-ratio:auto!important;top:50%;left:50%;transform:rotate(90deg) translate(-50%,-50%);transform-origin:center center;}';
           } else {
-            printCSS += '@page{size:landscape;margin:0}body{display:flex;align-items:center;justify-content:center;min-height:100vh}#certPrintArea{width:100%!important}';
+            printCSS += '@page{size:landscape;margin:0}body{display:flex;align-items:center;justify-content:center;min-height:100vh}#certPrintArea{width:100%!important;transform:none!important}';
           }
           w.document.write('<!DOCTYPE html><html><head><title>Certificado - ' + course.name + '</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>' + printCSS + '</style></head><body>' + printHTML + '</body></html>');
           w.document.close();
