@@ -5602,7 +5602,7 @@
         const cols={courses:'dermalysse_sync_courses',webinars:'dermalysse_sync_webinars',pdfs:'dermalysse_sync_pdfs',news:'dermalysse_sync_news',notifications:'dermalysse_sync_notifs',members:'dermalysse_sync_members'};
         for(const[col,lsKey] of Object.entries(cols)){
           const snap=await db.collection(col).get();
-          if(!snap.empty){const data=snap.docs.map(d=>({id:d.id,...d.data()}));safeSet(lsKey,JSON.stringify(data));}
+          if(!snap.empty){const data=snap.docs.map(d=>({id:d.id,...d.data()}));safeSet(lsKey,JSON.stringify(data));}else{localStorage.removeItem(lsKey);}
         }
         console.log('✅ Firestore → localStorage sincronizado');
       } catch(e){console.error('Firestore load error:',e);}
