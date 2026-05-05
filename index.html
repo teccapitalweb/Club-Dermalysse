@@ -6562,7 +6562,7 @@
         const liveBtn = w.live ? '<a href="' + w.live + '" target="_blank" class="webinar-item-action" style="background:var(--azul-dark);color:white;text-decoration:none;" onclick="event.stopPropagation()">Unirme</a>' : '';
         const recBtn = w.drive ? '<a href="' + w.drive + '" target="_blank" class="webinar-item-action" style="background:var(--bg-elevated);color:var(--text-secondary);text-decoration:none;border:1px solid var(--border);" onclick="event.stopPropagation()">Ver grabación</a>' : '';
         const reserveBtn = isReserved
-          ? '<button class="webinar-item-action" style="background:var(--success);color:white;cursor:default;" disabled>Reservado ✓</button>'
+          ? '<button class="webinar-item-action" style="background:var(--success);color:white;cursor:default;" disabled>Reservado</button>'
           : '<button class="webinar-item-action" onclick="event.stopPropagation();reserveWebinar(' + idx + ')">Reservar</button>';
         const actionBtn = liveBtn || recBtn || reserveBtn;
         const cvBtn = w.img ? '<button class="webinar-item-action" style="background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border);font-size:.78rem;padding:.4rem .75rem;" onclick="event.stopPropagation();showCVModal(\'' + driveImageUrl(w.img) + '\')">Ver CV</button>' : '';
