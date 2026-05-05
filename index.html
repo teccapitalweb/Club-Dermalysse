@@ -5346,21 +5346,30 @@
     var NEWSDATA_KEY = 'pub_0e241a225e664d0c8e13129875265f78';
 
     function fetchInternetNews() {
-      // Revisar caché (24h)
-      try {
-        var cachedTime = parseInt(localStorage.getItem(NEWS_CACHE_TIME)) || 0;
-        if (Date.now() - cachedTime < NEWS_CACHE_DURATION) {
-          var cached = JSON.parse(localStorage.getItem(NEWS_CACHE_KEY));
-          if (cached && cached.length > 0) {
+      // Primero: revisar caché compartido en Firestore
+      db.collection('config').doc('newsCache').get().then(function(doc) {
+        if (doc.exists) {
+          var cache = doc.data();
+          var cachedTime = cache.timestamp || 0;
+          if (Date.now() - cachedTime < NEWS_CACHE_DURATION && cache.articles && cache.articles.length > 0) {
+            // Caché fresco — usar para todos los usuarios
+            var cached = cache.articles.map(function(item) {
+              var hoursAgo = Math.floor((Date.now() - new Date(item.pubDate || Date.now()).getTime()) / 3600000);
+              var dateText = hoursAgo < 1 ? 'Hace un momento' : hoursAgo < 24 ? 'Hace ' + hoursAgo + 'h' : hoursAgo < 48 ? 'Ayer' : 'Hace ' + Math.floor(hoursAgo / 24) + ' días';
+              return { cat: item.cat || 'Salud', title: item.title || '', excerpt: item.excerpt || item.title, date: dateText, author: item.author || 'Web', img: item.img || '', isAdmin: false, link: item.link || '' };
+            });
             NEWS = _adminNews.concat(cached);
             try { renderNews(); } catch(e) {}
             try { renderNewsInicio(); } catch(e) {}
             return;
           }
         }
-      } catch(e) {}
+        // Caché expirado o no existe — buscar en NewsData.io
+        _fetchFromNewsAPI();
+      }).catch(function() { _fetchFromNewsAPI(); });
+    }
 
-      // Buscar noticias en NewsData.io
+    function _fetchFromNewsAPI() {
       var queries = [
         '&q=dermatologia&language=es&size=10',
         '&q=cuidado%20piel&language=es&size=10',
@@ -5400,17 +5409,19 @@
               author: item.source_name || 'Web',
               img: item.image_url || '',
               isAdmin: false,
-              link: item.link || ''
+              link: item.link || '',
+              pubDate: item.pubDate || new Date().toISOString()
             };
           }).filter(function(n) { return n.title; });
 
-          // Guardar en caché 24h
+          // Guardar en Firestore como caché compartido para todos los usuarios
           try {
-            localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify(internetNews));
-            localStorage.setItem(NEWS_CACHE_TIME, String(Date.now()));
+            db.collection('config').doc('newsCache').set({
+              timestamp: Date.now(),
+              articles: internetNews.map(function(n) { return { cat: n.cat, title: n.title, excerpt: n.excerpt, author: n.author, img: n.img, link: n.link, pubDate: n.pubDate }; })
+            });
           } catch(e) {}
 
-          // Admin primero, internet después
           NEWS = _adminNews.concat(internetNews);
           try { renderNews(); } catch(e) {}
           try { renderNewsInicio(); } catch(e) {}
