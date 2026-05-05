@@ -5245,10 +5245,24 @@
       return id ? 'https://drive.google.com/file/d/' + id + '/preview' : '';
     }
 
+    // Helper: parsear duración libre ("1 Hora", "45 min", "1h 30min", "90") → minutos
+    function parseDurToMin(dur) {
+      if (!dur) return 0;
+      var s = String(dur).toLowerCase().trim();
+      var h = 0, m = 0;
+      var hMatch = s.match(/(\d+)\s*(hora|hrs?|h)/);
+      var mMatch = s.match(/(\d+)\s*(min|m(?!i))/);
+      if (hMatch) h = parseInt(hMatch[1]) || 0;
+      if (mMatch) m = parseInt(mMatch[1]) || 0;
+      if (h || m) return h * 60 + m;
+      // Si solo es número, asumir minutos
+      return parseInt(s) || 0;
+    }
+
     // Cursos: transformar formato Admin → Club
     let _rawCourses = syncRead(SYNC_KEYS.courses) || [];
     let COURSES = _rawCourses.filter(c => c.status === 'published').map(c => {
-      const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
+      const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + parseDurToMin(l.dur), 0) : 0;
       const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
 
       // Cargar progreso guardado
@@ -5744,7 +5758,7 @@
       _rawCourses = syncRead(SYNC_KEYS.courses) || [];
       COURSES.length = 0;
       _rawCourses.filter(c => c.status === 'published').forEach(c => {
-        const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
+        const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + parseDurToMin(l.dur), 0) : 0;
         const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
         const progressKey = 'dermalysse_progress_' + c.id;
         let completedLessons = [];
@@ -6084,13 +6098,7 @@
         if (c.lessons) {
           c.lessons.forEach(function(l) {
             if (l.completed) {
-              var mins = parseInt(l.duration) || 0;
-              if (l.duration && l.duration.indexOf('hora') > -1) mins = (parseInt(l.duration) || 1) * 60;
-              if (mins === 0 && l.duration) {
-                var hm = l.duration.match(/(\d+)/);
-                if (hm) mins = parseInt(hm[1]);
-              }
-              totalMinutes += mins;
+              totalMinutes += parseDurToMin(l.duration);
             }
           });
         }
