@@ -5246,8 +5246,8 @@
     }
 
     // Cursos: transformar formato Admin → Club
-    const _rawCourses = syncRead(SYNC_KEYS.courses) || [];
-    const COURSES = _rawCourses.filter(c => c.status === 'published').map(c => {
+    let _rawCourses = syncRead(SYNC_KEYS.courses) || [];
+    let COURSES = _rawCourses.filter(c => c.status === 'published').map(c => {
       const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
       const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
 
@@ -5284,8 +5284,8 @@
     });
 
     // Webinars: transformar formato Admin → Club
-    const _rawWebinars = syncRead(SYNC_KEYS.webinars) || [];
-    const WEBINARS = _rawWebinars.filter(w => w.status === 'scheduled').map(w => {
+    let _rawWebinars = syncRead(SYNC_KEYS.webinars) || [];
+    let WEBINARS = _rawWebinars.filter(w => w.status === 'scheduled').map(w => {
       let d = w.date ? new Date(w.date) : null;
       if (!d || isNaN(d.getTime())) {
         // Intentar parsear formatos alternativos
@@ -5313,8 +5313,8 @@
     });
 
     // PDFs: transformar formato Admin → Club
-    const _rawPdfs = syncRead(SYNC_KEYS.pdfs) || [];
-    const PDFS = _rawPdfs.map(p => ({
+    let _rawPdfs = syncRead(SYNC_KEYS.pdfs) || [];
+    let PDFS = _rawPdfs.map(p => ({
       name: p.name,
       pages: p.pages,
       size: Math.round(p.pages * 0.15 * 10)/10 + ' MB',
@@ -5423,7 +5423,7 @@
     }
 
     // Notificaciones: transformar formato Admin → Club
-    const _rawNotifs = syncRead(SYNC_KEYS.notifs) || [];
+    let _rawNotifs = syncRead(SYNC_KEYS.notifs) || [];
     let NOTIFS = _rawNotifs.slice(0, 15).map(n => {
       const icons = {curso:'book',vivo:'play',pdf:'file',promo:'tag',info:'bell',member:'user'};
       const dateVal = n.date || n.createdAt || '';
@@ -5722,6 +5722,69 @@
         else showToast('Error: '+(err.message||err.code));
       }
       return false;
+    }
+
+    // ─── Reconstruir datos desde localStorage (tras _loadFirestoreData) ───
+    function _rebuildSyncData() {
+      // CURSOS
+      _rawCourses = syncRead(SYNC_KEYS.courses) || [];
+      COURSES.length = 0;
+      _rawCourses.filter(c => c.status === 'published').forEach(c => {
+        const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + (parseInt(l.dur)||0), 0) : 0;
+        const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
+        const progressKey = 'dermalysse_progress_' + c.id;
+        let completedLessons = [];
+        try { completedLessons = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
+        const totalLessons = (c.lessons||[]).length;
+        const completedCount = completedLessons.length;
+        const progress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+        COURSES.push({
+          id: c.id, name: c.name,
+          cat: (c.cat||'').toLowerCase().replace(/í/g,'i').replace(/é/g,'e'),
+          duration: durText, level: c.level, progress: progress,
+          description: c.desc || (c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.'),
+          instructor: c.instructor || '', img: c.img || '', temario: c.temario || '',
+          lessons: (c.lessons||[]).map((l,i) => ({
+            id: i+1, title: l.name, duration: l.dur || '',
+            completed: completedLessons.includes(i+1),
+            current: !completedLessons.includes(i+1) && (i === 0 || completedLessons.includes(i)),
+            locked: i > 0 && !completedLessons.includes(i),
+            drive: l.drive || ''
+          }))
+        });
+      });
+      // WEBINARS
+      _rawWebinars = syncRead(SYNC_KEYS.webinars) || [];
+      WEBINARS.length = 0;
+      _rawWebinars.filter(w => w.status === 'scheduled').forEach(w => {
+        let d = w.date ? new Date(w.date) : null;
+        if (!d || isNaN(d.getTime())) {
+          if (w.date && typeof w.date === 'string') { const parts = w.date.split(/[-/T]/); if (parts.length >= 3) d = new Date(parts[0], parseInt(parts[1])-1, parts[2]); }
+          if (!d || isNaN(d.getTime())) d = new Date();
+        }
+        WEBINARS.push({ id: w.id||'', day: String(d.getDate()), month: d.toLocaleString('es-MX',{month:'short'}).replace('.',''), dateISO: w.date||d.toISOString(), dateObj: d, title: w.title, time: d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}), duration: w.duration||'1 Hora', speaker: w.speaker||'Especialista', live: w.live||'', drive: w.drive||'', img: w.img||'', reserved: false });
+      });
+      // PDFS
+      _rawPdfs = syncRead(SYNC_KEYS.pdfs) || [];
+      PDFS.length = 0;
+      _rawPdfs.forEach(p => { PDFS.push({ name: p.name, pages: p.pages, size: Math.round(p.pages*0.15*10)/10+' MB', drive: p.drive||'', img: p.img||'' }); });
+      // NEWS
+      _rawNews = syncRead(SYNC_KEYS.news) || [];
+      _adminNews = _rawNews.filter(n => n.status === 'published').map(n => {
+        var daysAgo = Math.floor((Date.now() - new Date(n.date).getTime()) / 86400000);
+        return { cat: n.cat, title: n.title, excerpt: n.title, date: daysAgo===0?'Hoy':daysAgo===1?'Ayer':'Hace '+daysAgo+' días', author: n.author, img: n.drive||'', isAdmin: true, link: '' };
+      });
+      NEWS = _adminNews.slice();
+      // NOTIFS
+      _rawNotifs = syncRead(SYNC_KEYS.notifs) || [];
+      const icons = {curso:'book',vivo:'play',pdf:'file',promo:'tag',info:'bell',member:'user'};
+      NOTIFS = _rawNotifs.slice(0,15).map(n => {
+        const dateVal = n.date||n.createdAt||'';
+        const dateObj = dateVal ? new Date(dateVal) : new Date();
+        const daysAgo = isNaN(dateObj.getTime()) ? 0 : Math.floor((Date.now()-dateObj.getTime())/86400000);
+        return { unread: daysAgo<3, icon: icons[n.type]||'bell', title: n.title||n.text||'', text: n.msg||n.body||n.text||'', time: daysAgo===0?'Hoy':daysAgo===1?'Ayer':'Hace '+daysAgo+' días' };
+      });
+      console.log('✅ Datos reconstruidos: ' + COURSES.length + ' cursos, ' + WEBINARS.length + ' webinars, ' + PDFS.length + ' pdfs');
     }
 
     function enterApp() {
@@ -8111,6 +8174,7 @@
         hideMaintenanceScreen();
         safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
         await _loadFirestoreData();
+        _rebuildSyncData();
         document.getElementById('authScreen').classList.remove('active');
         document.getElementById('appScreen').classList.add('active');
         enterApp();
