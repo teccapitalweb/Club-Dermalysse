@@ -6427,7 +6427,7 @@
           var isMobile = window.innerWidth < 768;
           var printCSS = '*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;background:#fff;margin:0;padding:0;overflow:hidden}#certPrintArea{box-shadow:none!important;max-width:none!important}';
           if (isMobile) {
-            printCSS += '@page{size:auto;margin:0}body{width:100%;height:100%}#certPrintArea{position:fixed;width:100vh!important;height:100vw!important;aspect-ratio:auto!important;top:50%;left:50%;transform:rotate(90deg) translate(-50%,-50%);transform-origin:center center;}';
+            printCSS += '@page{size:portrait;margin:0}body{width:100%;height:100%;position:relative}#certPrintArea{position:absolute;top:0;left:0;width:279.4mm!important;height:215.9mm!important;transform:rotate(90deg);transform-origin:top left;margin-left:215.9mm;}';
           } else {
             printCSS += '@page{size:landscape;margin:0}body{display:flex;align-items:center;justify-content:center;min-height:100vh}#certPrintArea{width:100%!important;transform:none!important}';
           }
