@@ -5434,7 +5434,8 @@
         icon: icons[n.type] || 'bell',
         title: n.title || n.text || '',
         text: n.msg || n.body || n.text || '',
-        time: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días'
+        time: daysAgo === 0 ? 'Hoy' : daysAgo === 1 ? 'Ayer' : 'Hace ' + daysAgo + ' días',
+        timestamp: isNaN(dateObj.getTime()) ? Date.now() : dateObj.getTime()
       };
     });
 
@@ -5784,7 +5785,7 @@
         const dateVal = n.date||n.createdAt||'';
         const dateObj = dateVal ? new Date(dateVal) : new Date();
         const daysAgo = isNaN(dateObj.getTime()) ? 0 : Math.floor((Date.now()-dateObj.getTime())/86400000);
-        return { unread: daysAgo<3, icon: icons[n.type]||'bell', title: n.title||n.text||'', text: n.msg||n.body||n.text||'', time: daysAgo===0?'Hoy':daysAgo===1?'Ayer':'Hace '+daysAgo+' días' };
+        return { unread: daysAgo<3, icon: icons[n.type]||'bell', title: n.title||n.text||'', text: n.msg||n.body||n.text||'', time: daysAgo===0?'Hoy':daysAgo===1?'Ayer':'Hace '+daysAgo+' días', timestamp: isNaN(dateObj.getTime()) ? Date.now() : dateObj.getTime() };
       });
       console.log('✅ Datos reconstruidos: ' + COURSES.length + ' cursos, ' + WEBINARS.length + ' webinars, ' + PDFS.length + ' pdfs');
     }
