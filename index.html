@@ -6424,7 +6424,15 @@
         area.style.cssText = origStyle;
         var w = window.open('', 'print', 'width=1100,height=800');
         if (w) {
-          w.document.write('<!DOCTYPE html><html><head><title>Certificado - ' + course.name + '</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:0;background:#fff}#certPrintArea{width:100%!important;max-width:100%!important;transform:none!important;aspect-ratio:1.414/1}@media print{body{padding:0}@page{size:landscape;margin:0}#certPrintArea{width:100%!important;height:100vh!important;aspect-ratio:auto}}</style></head><body>' + printHTML + '</body></html>');
+          var isMobile = window.innerWidth < 768;
+          var printCSS = '*{margin:0;padding:0;box-sizing:border-box}body{font-family:DM Sans,sans-serif;background:#fff;margin:0;padding:0;overflow:hidden}#certPrintArea{box-shadow:none!important;transform:none!important;max-width:none!important}';
+          if (isMobile) {
+            // Móvil: rotar certificado 90° para forzar landscape en página portrait
+            printCSS += '@page{size:auto;margin:0}body{width:100vw;height:100vh}#certPrintArea{position:fixed;top:0;left:0;width:279mm!important;height:auto!important;aspect-ratio:1.414/1;transform:rotate(90deg) translateY(-100%);transform-origin:top left;}';
+          } else {
+            printCSS += '@page{size:landscape;margin:0}body{display:flex;align-items:center;justify-content:center;min-height:100vh}#certPrintArea{width:100%!important}';
+          }
+          w.document.write('<!DOCTYPE html><html><head><title>Certificado - ' + course.name + '</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>' + printCSS + '</style></head><body>' + printHTML + '</body></html>');
           w.document.close();
           setTimeout(function(){ w.print(); }, 800);
         } else { showToast('Permite ventanas emergentes para descargar'); }
