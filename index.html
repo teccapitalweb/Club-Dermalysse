@@ -6011,7 +6011,27 @@
       var courseIdx = COURSES.indexOf(c);
       if (courseIdx < 0) courseIdx = 0;
       var subStart = _userSubscription.subscribedAt ? new Date(_userSubscription.subscribedAt) : null;
-      var daysSinceSub = subStart ? Math.floor((Date.now() - subStart.getTime()) / (1000*60*60*24)) : 999;
+      // Si no hay suscripción activa, mostrar cards normales (el bloqueo ocurre en openCourse)
+      if (_userSubscription.status !== 'active') {
+        return `
+        <article class="course-card" onclick="openCourse('${c.id}')">
+          <div class="course-thumb">
+            ${imgTag}
+            <div class="course-thumb-overlay"></div>
+            <div class="course-tag">${c.level}</div>
+          </div>
+          <div class="course-body">
+            <h3 class="course-name">${c.name}</h3>
+            <div class="course-meta">
+              <span class="course-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>${c.cat}</span>
+            </div>
+            <div class="course-progress"><div class="course-progress-bar" style="width:${c.progress}%;"></div></div>
+          </div>
+        </article>
+      `;
+      }
+      // Suscriptor activo: calcular goteo
+      var daysSinceSub = subStart ? Math.floor((Date.now() - subStart.getTime()) / (1000*60*60*24)) : 0;
       var dripUnlocked = (courseIdx * DRIP_DAYS) <= daysSinceSub;
       var daysLeft = dripUnlocked ? 0 : (courseIdx * DRIP_DAYS) - daysSinceSub;
 
@@ -8004,12 +8024,18 @@
           }
           // Quitar locks
           removeLocks();
+          // Re-renderizar cursos con info de goteo
+          try { renderLibrary('todos'); } catch(e) {}
+          try { renderCursosInicio(); } catch(e) {}
         } else {
           // Mostrar planes
           document.getElementById('subActive').style.display = 'none';
           document.getElementById('subPlans').style.display = '';
           // Aplicar locks
           applyLocks();
+          // Re-renderizar cursos con info de goteo
+          try { renderLibrary('todos'); } catch(e) {}
+          try { renderCursosInicio(); } catch(e) {}
         }
       } catch(e) { console.error('Check subscription error:', e); }
     }
