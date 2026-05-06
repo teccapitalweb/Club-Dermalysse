@@ -6005,6 +6005,46 @@
     function courseCard(c) {
       const imgSrc = c.img ? driveImageUrl(c.img) : 'img/cursos/' + c.id + '.jpg';
       const imgTag = `<img src="${imgSrc}" onerror="this.style.display='none'" alt="${c.name}">`;
+
+      // Calcular goteo por días
+      var subStart = _userSubscription.subscribedAt ? new Date(_userSubscription.subscribedAt) : null;
+      var daysSinceSub = subStart ? Math.floor((Date.now() - subStart.getTime()) / (1000*60*60*24)) : 999;
+      var DRIP_DAYS = 15;
+      var totalLessons = (c.lessons || []).length;
+      var unlockedCount = 0;
+      for (var li = 0; li < totalLessons; li++) {
+        if ((li * DRIP_DAYS) <= daysSinceSub) unlockedCount++;
+      }
+      var nextUnlockDays = unlockedCount < totalLessons ? ((unlockedCount) * DRIP_DAYS) - daysSinceSub : 0;
+      var allUnlocked = unlockedCount >= totalLessons;
+      var noneUnlocked = unlockedCount <= 1 && totalLessons > 1;
+
+      // Si hay clases bloqueadas y no se ha completado ninguna, mostrar overlay
+      if (nextUnlockDays > 0 && c.progress === 0 && noneUnlocked) {
+        return `
+        <article class="course-card course-card-locked" onclick="showToast('Próxima clase en ${nextUnlockDays} días')">
+          <div class="course-thumb">
+            ${imgTag}
+            <div class="course-thumb-overlay"></div>
+            <div class="course-tag">${c.level}</div>
+            <div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3;border-radius:var(--radius-sm) var(--radius-sm) 0 0;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin-bottom:.5rem;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span style="color:white;font-size:.85rem;font-weight:600;">Próxima clase en ${nextUnlockDays} días</span>
+            </div>
+          </div>
+          <div class="course-body">
+            <h3 class="course-name">${c.name}</h3>
+            <div class="course-meta">
+              <span class="course-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>${c.cat}</span>
+            </div>
+            <div class="course-progress"><div class="course-progress-bar" style="width:0%;"></div></div>
+          </div>
+        </article>
+      `;
+      }
+
+      // Card normal (con indicador si hay próxima clase por desbloquear)
+      var unlockHint = (!allUnlocked && nextUnlockDays > 0) ? `<span style="font-size:.7rem;color:var(--text-muted);margin-left:.5rem;">🔒 ${nextUnlockDays}d</span>` : '';
       return `
         <article class="course-card" onclick="openCourse('${c.id}')">
           <div class="course-thumb">
@@ -6013,7 +6053,7 @@
             <div class="course-tag">${c.level}</div>
           </div>
           <div class="course-body">
-            <h3 class="course-name">${c.name}</h3>
+            <h3 class="course-name">${c.name}${unlockHint}</h3>
             <div class="course-meta">
               <span class="course-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>${c.cat}</span>
             </div>
