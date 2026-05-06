@@ -7371,14 +7371,55 @@
           </div>
           <div class="cert-qr">QR code</div>
           <div class="cert-actions">
-            <button class="btn-secondary" onclick="showToast('Descarga disponible en versión completa')">Descargar PDF</button>
-            <button class="btn-secondary" onclick="showToast('Enlace copiado')">Compartir</button>
+            <button class="btn-secondary" onclick="downloadCertFromList('${c.userName}','${c.courseName}','${c.date}','${c.instructor}','${c.code}')">Descargar PDF</button>
+            <button class="btn-secondary" onclick="shareCert('${c.userName}','${c.courseName}','${c.code}')">Compartir</button>
           </div>
         </div>
       `).join('');
     }
 
     // ─── 5. RUTA DE APRENDIZAJE ───
+
+    function downloadCertFromList(userName, courseName, date, instructor, code) {
+      var printWin = window.open('', '_blank');
+      printWin.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Certificado - ' + courseName + '</title>');
+      printWin.document.write('<style>');
+      printWin.document.write('*{margin:0;padding:0;box-sizing:border-box}');
+      printWin.document.write('@page{size:landscape;margin:0}');
+      printWin.document.write('body{font-family:"DM Sans",Arial,sans-serif;width:279.4mm;height:215.9mm;display:flex;align-items:center;justify-content:center;background:#fff}');
+      printWin.document.write('.cert{width:260mm;height:195mm;border:3px solid #2e5f7a;border-radius:12px;padding:2.5rem 3rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}');
+      printWin.document.write('.cert-subtitle{font-size:.8rem;letter-spacing:3px;text-transform:uppercase;color:#5a96b5;margin-bottom:1rem}');
+      printWin.document.write('.cert-name{font-size:2.2rem;font-weight:700;color:#1a1a1a;margin-bottom:.5rem}');
+      printWin.document.write('.cert-desc{font-size:1rem;color:#666;margin-bottom:.5rem}');
+      printWin.document.write('.cert-course{font-size:1.5rem;font-weight:600;color:#2e5f7a;margin-bottom:1.5rem}');
+      printWin.document.write('.cert-meta{display:flex;gap:3rem;font-size:.85rem;color:#888}');
+      printWin.document.write('.cert-meta strong{display:block;color:#1a1a1a;font-weight:600;margin-top:.2rem}');
+      printWin.document.write('.cert-code{position:absolute;bottom:1.5rem;right:2rem;font-size:.75rem;color:#aaa}');
+      printWin.document.write('</style></head><body>');
+      printWin.document.write('<div class="cert">');
+      printWin.document.write('<div class="cert-subtitle">Certificado de finalización</div>');
+      printWin.document.write('<div class="cert-name">' + userName + '</div>');
+      printWin.document.write('<div class="cert-desc">Ha completado satisfactoriamente el curso</div>');
+      printWin.document.write('<div class="cert-course">' + courseName + '</div>');
+      printWin.document.write('<div class="cert-meta"><div>Fecha<strong>' + date + '</strong></div><div>Instructor<strong>' + instructor + '</strong></div><div>Código<strong>' + code + '</strong></div></div>');
+      printWin.document.write('<div class="cert-code">Verificar: club.dermalyssemx.com/verify.html?code=' + code + '</div>');
+      printWin.document.write('</div></body></html>');
+      printWin.document.close();
+      setTimeout(function() { printWin.print(); }, 400);
+    }
+
+    function shareCert(userName, courseName, code) {
+      var url = 'https://club.dermalyssemx.com/verify.html?code=' + code;
+      var text = 'Certificado de ' + userName + ' - ' + courseName + '. Verificar: ' + url;
+      if (navigator.share) {
+        navigator.share({ title: 'Certificado Dermalysse', text: text, url: url }).catch(function(){});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() { showToast('Enlace copiado al portapapeles'); });
+      } else {
+        showToast('Compartir no disponible');
+      }
+    }
+
     var RUTA_CURSOS = [
       { step: 1, name: 'Fundamentos de Dermatología Estética', desc: 'Bases de la piel, clasificación y evaluación.', status: 'completed', duration: '4h 20min' },
       { step: 2, name: 'Tipos de Piel y Diagnóstico', desc: 'Aprende a identificar y clasificar cada tipo de piel.', status: 'completed', duration: '3h 15min' },
@@ -7866,13 +7907,56 @@
           ${obs ? `<div class="ficha-section"><div class="ficha-section-title">Observaciones</div><div class="ficha-block">${obs}</div></div>` : ''}
 
           <div class="ficha-actions">
-            <button class="btn-secondary" onclick="showToast('Descarga disponible en versión completa')">Descargar PDF</button>
-            <button class="btn-secondary" onclick="showToast('Enlace copiado')">Compartir</button>
+            <button class="btn-secondary" onclick="downloadFichaPDF()">Descargar PDF</button>
+            <button class="btn-secondary" onclick="shareFicha()">Compartir</button>
           </div>
         </div>`;
 
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       // gotas removidas
+    }
+
+    function downloadFichaPDF() {
+      var fichaEl = document.querySelector('.ficha-preview');
+      if (!fichaEl) { showToast('Primero genera una ficha'); return; }
+      var clone = fichaEl.cloneNode(true);
+      // Quitar botones del clone
+      var actions = clone.querySelector('.ficha-actions');
+      if (actions) actions.remove();
+
+      var printWin = window.open('', '_blank');
+      printWin.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ficha Clínica - Dermalysse</title>');
+      printWin.document.write('<style>');
+      printWin.document.write('*{margin:0;padding:0;box-sizing:border-box}');
+      printWin.document.write('body{font-family:"DM Sans",Arial,sans-serif;padding:2.5rem;color:#1a1a1a;background:#fff}');
+      printWin.document.write('@page{size:letter;margin:1.5cm}');
+      printWin.document.write('h2{font-size:1.4rem;font-weight:700;margin-bottom:.15rem}');
+      printWin.document.write('.ficha-sub{font-size:.8rem;color:#888}');
+      printWin.document.write('.ficha-section{margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e0d5}');
+      printWin.document.write('.ficha-section-title{font-size:.7rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#2e5f7a;margin-bottom:.75rem}');
+      printWin.document.write('.ficha-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}');
+      printWin.document.write('.ficha-item-label{font-size:.75rem;color:#888;margin-bottom:.2rem}');
+      printWin.document.write('.ficha-item-value{font-size:.95rem;font-weight:500}');
+      printWin.document.write('.ficha-block{font-size:.9rem;line-height:1.7;color:#444;padding:.5rem 0}');
+      printWin.document.write('img{width:36px;height:auto}');
+      printWin.document.write('</style></head><body>');
+      printWin.document.write(clone.innerHTML);
+      printWin.document.write('</body></html>');
+      printWin.document.close();
+      setTimeout(function() { printWin.print(); }, 400);
+    }
+
+    function shareFicha() {
+      var fichaEl = document.querySelector('.ficha-preview h2');
+      var nombre = fichaEl ? fichaEl.textContent : 'Paciente';
+      var text = 'Ficha clínica de ' + nombre + ' - Club Dermalysse';
+      if (navigator.share) {
+        navigator.share({ title: 'Ficha Clínica', text: text }).catch(function(){});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() { showToast('Texto copiado al portapapeles'); });
+      } else {
+        showToast('Compartir no disponible en este navegador');
+      }
     }
 
     // ─── Init herramientas al entrar ───
