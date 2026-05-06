@@ -5388,36 +5388,30 @@
         '&q=dermatologia&language=es&size=10',
         '&q=cuidado%20piel&language=es&size=10',
         '&q=estetica%20facial%20OR%20cosmetologia&language=es&size=10',
-        '&q=skincare%20OR%20dermatology&language=es,en&size=10'
+        '&q=skincare%20OR%20dermatology&language=es,en&size=10',
+        '&q=medicina%20estetica&language=es&size=10',
+        '&q=salud%20belleza%20piel&language=es&size=10',
+        '&q=cosmetica%20tratamiento%20facial&language=es&size=10'
       ];
       var baseUrl = 'https://newsdata.io/api/1/latest?apikey=' + NEWSDATA_KEY;
+      var allNews = [];
+      var seenTitles = {};
+      var completed = 0;
 
-      function tryNewsQuery(idx) {
-        if (idx >= queries.length) {
-          NEWS = _adminNews;
-          try { renderNews(); } catch(e) {}
-          try { renderNewsInicio(); } catch(e) {}
-          return;
-        }
-        fetch(baseUrl + queries[idx])
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.status !== 'success' || !data.results || data.results.length === 0) {
-            tryNewsQuery(idx + 1);
-            return;
-          }
-
-          var internetNews = data.results.map(function(item) {
+      function processResult(data) {
+        if (data.status === 'success' && data.results && data.results.length > 0) {
+          data.results.forEach(function(item) {
+            if (!item.title || seenTitles[item.title]) return;
+            seenTitles[item.title] = true;
             var pubDate = new Date(item.pubDate);
             var hoursAgo = Math.floor((Date.now() - pubDate.getTime()) / 3600000);
             var dateText = hoursAgo < 1 ? 'Hace un momento' :
               hoursAgo < 24 ? 'Hace ' + hoursAgo + 'h' :
               hoursAgo < 48 ? 'Ayer' :
               'Hace ' + Math.floor(hoursAgo / 24) + ' días';
-
-            return {
+            allNews.push({
               cat: item.source_name || 'Salud',
-              title: item.title || '',
+              title: item.title,
               excerpt: item.description ? item.description.substring(0, 160) : item.title,
               date: dateText,
               author: item.source_name || 'Web',
@@ -5425,26 +5419,39 @@
               isAdmin: false,
               link: item.link || '',
               pubDate: item.pubDate || new Date().toISOString()
-            };
-          }).filter(function(n) { return n.title; });
+            });
+          });
+        }
+      }
 
-          // Guardar en Firestore como caché compartido para todos los usuarios
+      function finishAll() {
+        completed++;
+        if (completed < queries.length) return;
+        // Todas las queries terminaron — combinar resultados
+        if (allNews.length > 0) {
+          // Ordenar por fecha más reciente
+          allNews.sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
+          // Guardar en Firestore como caché compartido
           try {
             db.collection('config').doc('newsCache').set({
               timestamp: Date.now(),
-              articles: internetNews.map(function(n) { return { cat: n.cat, title: n.title, excerpt: n.excerpt, author: n.author, img: n.img, link: n.link, pubDate: n.pubDate }; })
+              articles: allNews.map(function(n) { return { cat: n.cat, title: n.title, excerpt: n.excerpt, author: n.author, img: n.img, link: n.link, pubDate: n.pubDate }; })
             });
           } catch(e) {}
-
-          NEWS = _adminNews.concat(internetNews);
-          try { renderNews(); } catch(e) {}
-          try { renderNewsInicio(); } catch(e) {}
-        })
-        .catch(function() {
-          tryNewsQuery(idx + 1);
-        });
+          NEWS = _adminNews.concat(allNews);
+        } else {
+          NEWS = _adminNews;
+        }
+        try { renderNews(); } catch(e) {}
+        try { renderNewsInicio(); } catch(e) {}
       }
-      tryNewsQuery(0);
+
+      queries.forEach(function(q) {
+        fetch(baseUrl + q)
+        .then(function(r) { return r.json(); })
+        .then(function(data) { processResult(data); finishAll(); })
+        .catch(function() { finishAll(); });
+      });
     }
 
     // Notificaciones: transformar formato Admin → Club
