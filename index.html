@@ -6004,6 +6004,19 @@
     }
 
     var DRIP_DAYS = 15; // Días entre cada curso
+    // MODIFICADO: acceso por suscripción Stripe O por días de cortesía (vigenciaHasta)
+    function _tieneAcceso(){
+      if (_userSubscription.status === 'active') return true;
+      if (_userSubscription.vigenciaHasta && new Date(_userSubscription.vigenciaHasta) > new Date()) return true;
+      return false;
+    }
+    // Fecha base del goteo: activos por Stripe usan subscribedAt; regalados usan regaloDesde
+    function _accesoBaseDate(){
+      if (_userSubscription.status === 'active' && _userSubscription.subscribedAt) return new Date(_userSubscription.subscribedAt);
+      if (_userSubscription.regaloDesde) return new Date(_userSubscription.regaloDesde);
+      if (_userSubscription.subscribedAt) return new Date(_userSubscription.subscribedAt);
+      return new Date();
+    }
     function courseCard(c, idx) {
       const imgSrc = c.img ? driveImageUrl(c.img) : 'img/cursos/' + c.id + '.jpg';
       const imgTag = `<img src="${imgSrc}" onerror="this.style.display='none'" alt="${c.name}">`;
@@ -6011,9 +6024,9 @@
       // Goteo por cursos: curso 1 = día 0, curso 2 = día 15, curso 3 = día 30...
       var courseIdx = COURSES.indexOf(c);
       if (courseIdx < 0) courseIdx = 0;
-      var subStart = _userSubscription.subscribedAt ? new Date(_userSubscription.subscribedAt) : null;
+      var subStart = _accesoBaseDate();
       // Si no hay suscripción activa, mostrar cards normales (el bloqueo ocurre en openCourse)
-      if (_userSubscription.status !== 'active') {
+      if (!_tieneAcceso()) {
         return `
         <article class="course-card" onclick="openCourse('${c.id}')">
           <div class="course-thumb">
@@ -6183,10 +6196,10 @@
 
     // ═══ SISTEMA DE LIBERACIÓN DE CURSOS (GOTEO) ═══
     function isCourseUnlocked(course) {
-      if (_userSubscription.status !== 'active') return { unlocked: false, reason: 'Suscríbete para acceder' };
+      if (!_tieneAcceso()) return { unlocked: false, reason: 'Suscríbete para acceder' };
       var courseIdx = COURSES.indexOf(course);
       if (courseIdx < 0) courseIdx = 0;
-      var subStart = _userSubscription.subscribedAt ? new Date(_userSubscription.subscribedAt) : new Date();
+      var subStart = _accesoBaseDate();
       var daysSinceSub = Math.floor((Date.now() - subStart.getTime()) / (1000*60*60*24));
       if ((courseIdx * DRIP_DAYS) <= daysSinceSub) return { unlocked: true };
       var daysLeft = (courseIdx * DRIP_DAYS) - daysSinceSub;
@@ -6194,7 +6207,7 @@
     }
 
     function openCourse(courseId) {
-      if (_userSubscription.status !== 'active') {
+      if (!_tieneAcceso()) {
         showToast('Suscríbete para acceder a los cursos');
         goTo('suscripcion');
         return;
@@ -8001,6 +8014,10 @@
         if (!doc.exists) return;
         const sub = doc.data().subscription || {};
         _userSubscription = sub;
+        // MODIFICADO: inyectar campos de cortesía top-level (no los toca el webhook de Stripe)
+        const _udata = doc.data();
+        if (_udata.vigenciaHasta) _userSubscription.vigenciaHasta = _udata.vigenciaHasta;
+        if (_udata.regaloDesde) _userSubscription.regaloDesde = _udata.regaloDesde;
         if (!sub.subscribedAt && sub.status === 'active') _userSubscription.subscribedAt = sub.updatedAt || new Date().toISOString();
 
         if (sub.status === 'active') {
@@ -8026,6 +8043,13 @@
           // Quitar locks
           removeLocks();
           // Re-renderizar cursos con info de goteo
+          try { renderLibrary('todos'); } catch(e) {}
+          try { renderCursosInicio(); } catch(e) {}
+        } else if (_tieneAcceso()) {
+          // MODIFICADO: acceso de cortesía por días regalados (sin suscripción Stripe activa)
+          document.getElementById('subActive').style.display = 'none';
+          document.getElementById('subPlans').style.display = '';
+          removeLocks();
           try { renderLibrary('todos'); } catch(e) {}
           try { renderCursosInicio(); } catch(e) {}
         } else {
