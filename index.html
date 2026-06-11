@@ -4122,36 +4122,48 @@
       border-radius:99px;padding:.14rem .55rem;margin-left:.5rem;vertical-align:1px;
     }
 
-    /* Opiniones editoriales */
-    .auth-opiniones{max-width:440px;margin-bottom:1.5rem}
-    .auth-op{
-      position:relative;padding:.8rem 0 .8rem 2.1rem;
-      border-bottom:1px solid rgba(85,61,42,.12);
-    }
-    .auth-op:last-child{border-bottom:none}
-    .auth-op::before{
-      content:"\201C";
-      position:absolute;left:0;top:.45rem;
-      font-family:'Cormorant Garamond',serif;
-      font-size:2.5rem;line-height:1;color:var(--azul-main);
-    }
-    .auth-op p{
-      font-family:'Cormorant Garamond',serif;font-style:italic;
-      font-size:1.02rem;line-height:1.45;color:var(--cafe-dark);margin:0 0 .35rem;
-    }
-    .auth-op cite{
-      font-family:'DM Sans',sans-serif;font-style:normal;
-      display:flex;align-items:center;gap:.5rem;
-      font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cafe-mid);
-    }
-    .auth-op cite i{
-      width:22px;height:22px;border-radius:50%;flex:none;font-style:normal;
+    /* Opiniones — estilo comentarios de red social */
+    .auth-opiniones{max-width:440px;margin-bottom:1.6rem;display:grid;gap:.85rem}
+    .auth-op{display:flex;gap:.6rem;align-items:flex-start}
+    .auth-op .avi{
+      width:34px;height:34px;border-radius:50%;flex:none;margin-top:2px;
       display:grid;place-items:center;
-      font-size:.58rem;font-weight:800;letter-spacing:0;color:#fff;
+      font-size:.7rem;font-weight:800;color:#fff;
       background:linear-gradient(135deg,var(--azul-main),var(--azul-dark));
     }
-    .auth-op:nth-child(2) cite i{background:linear-gradient(135deg,var(--cafe-mid),var(--cafe-deep))}
-    .auth-op:nth-child(3) cite i{background:linear-gradient(135deg,var(--cafe-pale),var(--cafe-mid))}
+    .auth-op:nth-child(2) .avi{background:linear-gradient(135deg,var(--cafe-mid),var(--cafe-deep))}
+    .auth-op:nth-child(3) .avi{background:linear-gradient(135deg,var(--cafe-pale),var(--cafe-mid))}
+    .auth-op .bwrap{flex:1;min-width:0}
+    .auth-op .bubble{
+      position:relative;display:inline-block;
+      background:rgba(255,255,255,.82);
+      border:1px solid rgba(85,61,42,.10);
+      border-radius:4px 16px 16px 16px;
+      padding:.55rem .9rem .6rem;
+      box-shadow:0 2px 8px rgba(85,61,42,.07);
+    }
+    .auth-op .bubble b{display:block;font-size:.76rem;font-weight:700;color:var(--cafe-deep);margin-bottom:.15rem}
+    .auth-op .bubble b small{font-weight:500;color:var(--cafe-mid);font-size:.68rem;margin-left:.3rem}
+    .auth-op .bubble p{margin:0;font-size:.83rem;line-height:1.45;color:var(--cafe-dark)}
+    .auth-op .like-badge{
+      position:absolute;bottom:-9px;right:-6px;
+      display:inline-flex;align-items:center;gap:.22rem;
+      background:#fff;border:1px solid rgba(85,61,42,.12);
+      border-radius:99px;padding:.12rem .42rem .12rem .14rem;
+      font-size:.62rem;font-weight:600;color:var(--cafe-mid);
+      box-shadow:0 2px 6px rgba(85,61,42,.14);
+    }
+    .auth-op .like-badge i{
+      width:15px;height:15px;border-radius:50%;font-style:normal;
+      display:grid;place-items:center;
+      background:var(--azul-dark);
+    }
+    .auth-op .like-badge svg{width:9px;height:9px;fill:#fff}
+    .auth-op .meta{
+      display:flex;gap:.95rem;margin:.3rem 0 0 .9rem;
+      font-size:.66rem;color:var(--cafe-mid);
+    }
+    .auth-op .meta b{font-weight:700;cursor:default}
 
     /* Línea de confianza */
     .auth-fineline{
@@ -4174,11 +4186,9 @@
       .auth-menu{margin:0 auto 1rem;max-width:360px}
       .auth-menu-row{padding:.6rem 0}
       .auth-menu-row .price{font-size:1.45rem}
-      .auth-opiniones{margin:0 auto .9rem;max-width:380px}
-      .auth-op{padding:.55rem 0 .55rem 1.7rem}
-      .auth-op::before{font-size:2rem;top:.35rem}
-      .auth-op p{font-size:.92rem}
-      .auth-op:nth-child(3){display:none}
+      .auth-opiniones{margin:0 auto 1rem;max-width:380px;gap:.65rem}
+      .auth-op .bubble p{font-size:.78rem}
+      .auth-op .avi{width:30px;height:30px;font-size:.62rem}
       .auth-fineline{text-align:center}
       .auth-brand-bot{display:none}
       .auth-brand-top{margin-bottom:.4rem}
@@ -4255,16 +4265,37 @@
         <!-- ⚠️ BORRADORES: reemplazar con testimonios REALES antes de pautar fuerte -->
         <div class="auth-opiniones">
           <div class="auth-op">
-            <p>El curso de hidrafacial me lo pagué con las dos primeras clientas. Los protocolos vienen listos para aplicar en cabina.</p>
-            <cite><i>PG</i>P. González · Cosmetóloga</cite>
+            <span class="avi">PG</span>
+            <div class="bwrap">
+              <div class="bubble">
+                <b>Paola González <small>· Cosmetóloga</small></b>
+                <p>El curso de hidrafacial me lo pagué con las dos primeras clientas, los protocolos vienen listos para aplicar en cabina 🙌</p>
+                <span class="like-badge"><i><svg viewBox="0 0 24 24"><path d="M2 10h4v12H2zM22 11c0-1.1-.9-2-2-2h-5.2l.9-4.4v-.3c0-.4-.2-.8-.4-1.1L14.2 2 8.6 7.6c-.4.4-.6.9-.6 1.4v9c0 1.1.9 2 2 2h7c.8 0 1.5-.5 1.8-1.2l2.1-5c.1-.2.1-.5.1-.8v-2z"/></svg></i>12</span>
+              </div>
+              <div class="meta"><b>Me gusta</b><b>Responder</b><span>3 sem</span></div>
+            </div>
           </div>
           <div class="auth-op">
-            <p>El generador de protocolos y el atlas los uso cada semana con pacientes. La membresía se paga sola.</p>
-            <cite><i>RM</i>R. Medina · Esteticista</cite>
+            <span class="avi">RM</span>
+            <div class="bwrap">
+              <div class="bubble">
+                <b>Rocío Medina <small>· Esteticista</small></b>
+                <p>El generador de protocolos y el atlas los uso cada semana con pacientes. La membresía se paga sola</p>
+                <span class="like-badge"><i><svg viewBox="0 0 24 24"><path d="M2 10h4v12H2zM22 11c0-1.1-.9-2-2-2h-5.2l.9-4.4v-.3c0-.4-.2-.8-.4-1.1L14.2 2 8.6 7.6c-.4.4-.6.9-.6 1.4v9c0 1.1.9 2 2 2h7c.8 0 1.5-.5 1.8-1.2l2.1-5c.1-.2.1-.5.1-.8v-2z"/></svg></i>8</span>
+              </div>
+              <div class="meta"><b>Me gusta</b><b>Responder</b><span>1 mes</span></div>
+            </div>
           </div>
           <div class="auth-op">
-            <p>Los webinars en vivo son oro: le preguntas directo al especialista lo que te pasa con tus casos reales.</p>
-            <cite><i>LS</i>L. Sánchez · Dermatóloga</cite>
+            <span class="avi">LS</span>
+            <div class="bwrap">
+              <div class="bubble">
+                <b>Laura Sánchez <small>· Dermatóloga</small></b>
+                <p>Los webinars en vivo son oro, le preguntas directo al especialista sobre tus casos reales</p>
+                <span class="like-badge"><i><svg viewBox="0 0 24 24"><path d="M2 10h4v12H2zM22 11c0-1.1-.9-2-2-2h-5.2l.9-4.4v-.3c0-.4-.2-.8-.4-1.1L14.2 2 8.6 7.6c-.4.4-.6.9-.6 1.4v9c0 1.1.9 2 2 2h7c.8 0 1.5-.5 1.8-1.2l2.1-5c.1-.2.1-.5.1-.8v-2z"/></svg></i>15</span>
+              </div>
+              <div class="meta"><b>Me gusta</b><b>Responder</b><span>2 sem</span></div>
+            </div>
           </div>
         </div>
 
