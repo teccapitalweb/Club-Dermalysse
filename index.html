@@ -4171,6 +4171,19 @@
       color:var(--cafe-mid);
     }
 
+    /* Línea "gratis" + tabs centradas */
+    .auth-free-line{
+      display:flex;align-items:center;justify-content:center;gap:.45rem;
+      margin:0 0 1rem;
+      font-size:.92rem;color:var(--cafe-dark);
+    }
+    .auth-free-line b{color:var(--azul-dark);font-weight:800}
+    .auth-free-line svg{
+      width:17px;height:17px;flex:none;
+      stroke:#fff;background:var(--azul-dark);border-radius:50%;padding:3px;
+    }
+    .auth-tabs{margin-left:auto !important;margin-right:auto !important}
+
     /* MÓVIL: el panel de marca YA NO se oculta — versión compacta que vende antes del form */
     @media (max-width: 880px){
       .auth-brand{display:flex !important;padding:1.7rem 1.3rem 1.5rem;gap:.2rem}
@@ -4324,13 +4337,17 @@
     <div class="auth-form-wrap">
       <div class="auth-card">
 
+        <p class="auth-free-line">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Regístrate <b>completamente gratis</b>
+        </p>
         <div class="auth-tabs">
-          <button class="auth-tab active" data-tab="login">Iniciar sesión</button>
-          <button class="auth-tab" data-tab="register">Registrarme</button>
+          <button class="auth-tab" data-tab="login">Iniciar sesión</button>
+          <button class="auth-tab active" data-tab="register">Registrarme</button>
         </div>
 
         <!-- LOGIN -->
-        <div class="form-wrap active" id="loginForm">
+        <div class="form-wrap" id="loginForm">
           <h2 class="auth-title">Hola de nuevo</h2>
           <p class="auth-subtitle">Ingresa tus datos para entrar al club.</p>
 
@@ -4357,7 +4374,7 @@
         </div>
 
         <!-- REGISTER -->
-        <div class="form-wrap" id="registerForm">
+        <div class="form-wrap active" id="registerForm">
           <h2 class="auth-title">Únete al club</h2>
           <p class="auth-subtitle">Completa tus datos para crear tu cuenta.</p>
 
