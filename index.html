@@ -4221,6 +4221,8 @@
 
     // ═══ STRIPE CONFIG ═══
     const STRIPE_PK = 'pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b';
+    // DEPRECADO: ya no se usan — el webhook arma el precio dinámico desde
+    // config/club en Firestore (price_data), no desde Price IDs fijos de Stripe.
     const STRIPE_PRICE_MENSUAL = 'price_1TUCnuA7If2CqXs9YlPUF14H';
     const STRIPE_PRICE_ANUAL = 'price_1TUCpHA7If2CqXs9ChAd4a1p';
     const WEBHOOK_SERVER = 'https://dermalysse-webhook-production.up.railway.app'; // ← URL de Railway (se llena después del deploy)
@@ -4266,12 +4268,12 @@
           <div class="auth-menu-row">
             <span class="name">Membresía mensual<small>Cancela cuando quieras</small></span>
             <span class="dots"></span>
-            <span class="price">$200<small> /mes</small></span>
+            <span class="price" id="auth-precio-mes">$200<small> /mes</small></span>
           </div>
           <div class="auth-menu-row auth-menu-row--star">
-            <span class="name">Membresía anual<span class="reco">Recomendada</span><small>Equivale a $150/mes · ahorras $601 al año</small></span>
+            <span class="name">Membresía anual<span class="reco">Recomendada</span><small id="auth-precio-ano-meta">Equivale a $150/mes · ahorras $601 al año</small></span>
             <span class="dots"></span>
-            <span class="price">$1,799<small> /año</small></span>
+            <span class="price" id="auth-precio-ano">$1,799<small> /año</small></span>
           </div>
         </div>
 
@@ -4942,15 +4944,15 @@
           <div class="plans-grid">
             <div class="plan-card">
               <div class="plan-card-name">Plan Mensual</div>
-              <div class="plan-card-price">$200 <span>MXN/mes</span></div>
+              <div class="plan-card-price" id="plan-precio-mes">$200 <span>MXN/mes</span></div>
               <div class="plan-card-desc">Acceso completo a cursos, webinars en vivo, material PDF y comunidad Dermalysse.</div>
               <button class="btn-subscribe" onclick="startCheckout('mensual')" id="btnSubMensual">Suscribirme mensual</button>
             </div>
             <div class="plan-card popular">
               <div class="plan-card-name">Plan Anual</div>
-              <div class="plan-card-price">$1,799 <span>MXN/año</span></div>
-              <div class="plan-card-save">Ahorra $601 al año</div>
-              <div class="plan-card-desc">Acceso completo al Club Dermalysse por 1 año. Equivale a $150/mes.</div>
+              <div class="plan-card-price" id="plan-precio-ano">$1,799 <span>MXN/año</span></div>
+              <div class="plan-card-save" id="plan-ahorra">Ahorra $601 al año</div>
+              <div class="plan-card-desc" id="plan-equivale">Acceso completo al Club Dermalysse por 1 año. Equivale a $150/mes.</div>
               <button class="btn-subscribe" onclick="startCheckout('anual')" id="btnSubAnual">Suscribirme anual</button>
             </div>
           </div>
@@ -8250,7 +8252,14 @@
           document.getElementById('subActive').style.display = '';
           document.getElementById('subPlans').style.display = 'none';
           document.getElementById('subPlanName').textContent = sub.plan === 'anual' ? 'Dermalysse Anual' : 'Dermalysse Mensual';
-          document.getElementById('subPlanPrice').innerHTML = sub.plan === 'anual' ? '<strong>$1,799 MXN</strong> / año' : '<strong>$200 MXN</strong> / mes';
+          // Usa el monto REAL que pagó (guardado por el webhook en amountPaid) — no un precio fijo.
+          // Así, si el admin cambia precios después, a esta socia le sigue mostrando lo que ELLA paga.
+          // Fallback (suscripciones viejas sin amountPaid): el precio dinámico actual de config/club.
+          const _precioPagado = Number(sub.amountPaid) > 0
+            ? Number(sub.amountPaid)
+            : (sub.plan === 'anual' ? (window.__PRECIO_ANO || 1799) : (window.__PRECIO_MES || 200));
+          document.getElementById('subPlanPrice').innerHTML =
+            '<strong>$' + _precioPagado.toLocaleString('es-MX') + ' MXN</strong> / ' + (sub.plan === 'anual' ? 'año' : 'mes');
           document.getElementById('subStatus').innerHTML = sub.cancelAtPeriodEnd ? '● Cancelación programada' : '● Activa';
           document.getElementById('subStatus').style.color = sub.cancelAtPeriodEnd ? '#b91c1c' : 'var(--success)';
           if (sub.currentPeriodEnd) {
@@ -8305,7 +8314,9 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            priceId: plan === 'anual' ? STRIPE_PRICE_ANUAL : STRIPE_PRICE_MENSUAL,
+            // ← CAMBIO: el webhook ya no recibe priceId fijo, ahora arma el precio
+            // dinámicamente desde config/club en Firestore según este "plan".
+            plan: plan,
             firebaseUid: user.uid,
             email: user.email,
             successUrl: window.location.origin + window.location.pathname + '?payment=success',
@@ -8578,6 +8589,48 @@
         enterApp();
       }
     });
+
+    // ═══ PRECIOS DINÁMICOS (config/club en Firestore) ═══
+    // Reemplaza en TODA la página los precios que antes estaban fijos en el HTML:
+    // pantalla de login (auth-precio-mes / auth-precio-ano) y tarjetas de
+    // "Mi Suscripción" (plan-precio-mes / plan-precio-ano / plan-ahorra / plan-equivale).
+    // Corre ANTES del login (no depende de auth) porque el precio se ve desde la
+    // pantalla de auth. Si Firestore falla, se quedan los precios ya escritos en el HTML.
+    async function cargarPreciosDinamicos() {
+      try {
+        const snap = await db.collection('config').doc('club').get();
+        const c = snap.exists ? snap.data() : {};
+        const precioMes = Number(c.precioMes) > 0 ? Number(c.precioMes) : 200;
+        const precioAno = Number(c.precioAno) > 0 ? Number(c.precioAno) : 1799;
+        window.__PRECIO_MES = precioMes;
+        window.__PRECIO_ANO = precioAno;
+
+        const ahorra = Math.max(0, (precioMes * 12) - precioAno);
+        const equivaleMes = Math.round(precioAno / 12);
+        const fmt = n => n.toLocaleString('es-MX');
+
+        // Pantalla de auth (antes de iniciar sesión)
+        const elAuthMes = document.getElementById('auth-precio-mes');
+        if (elAuthMes) elAuthMes.innerHTML = '$' + fmt(precioMes) + '<small> /mes</small>';
+        const elAuthAno = document.getElementById('auth-precio-ano');
+        if (elAuthAno) elAuthAno.innerHTML = '$' + fmt(precioAno) + '<small> /año</small>';
+        const elAuthAnoMeta = document.getElementById('auth-precio-ano-meta');
+        if (elAuthAnoMeta) elAuthAnoMeta.textContent = 'Equivale a $' + fmt(equivaleMes) + '/mes · ahorras $' + fmt(ahorra) + ' al año';
+
+        // Tarjetas de "Mi Suscripción"
+        const elPlanMes = document.getElementById('plan-precio-mes');
+        if (elPlanMes) elPlanMes.innerHTML = '$' + fmt(precioMes) + ' <span>MXN/mes</span>';
+        const elPlanAno = document.getElementById('plan-precio-ano');
+        if (elPlanAno) elPlanAno.innerHTML = '$' + fmt(precioAno) + ' <span>MXN/año</span>';
+        const elPlanAhorra = document.getElementById('plan-ahorra');
+        if (elPlanAhorra) elPlanAhorra.textContent = 'Ahorra $' + fmt(ahorra) + ' al año';
+        const elPlanEquivale = document.getElementById('plan-equivale');
+        if (elPlanEquivale) elPlanEquivale.textContent = 'Acceso completo al Club Dermalysse por 1 año. Equivale a $' + fmt(equivaleMes) + '/mes.';
+      } catch(e) {
+        console.warn('[Club] No se pudieron cargar precios dinámicos, se usan los del HTML:', e.message);
+      }
+    }
+    cargarPreciosDinamicos();
 
   </script>
 
