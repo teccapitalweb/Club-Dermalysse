@@ -4206,6 +4206,453 @@
       .auth-brand-bot{display:none}
       .auth-brand-top{margin-bottom:.4rem}
     }
+
+    /* ═══ AUTH 2026 · The Skin Edit / Fashion editorial ═══ */
+    #authScreen.active{
+      --fashion-ink:#191416;
+      --fashion-wine:#741b34;
+      --fashion-pink:#ff4f79;
+      --fashion-cream:#f7f1ea;
+      --fashion-blush:#e7c5cb;
+      display:grid;
+      grid-template-columns:minmax(0,1.18fr) minmax(440px,.82fr);
+      min-height:100dvh;
+      background:var(--fashion-cream);
+    }
+
+    #authScreen .auth-brand{
+      min-width:0;
+      min-height:100dvh;
+      padding:2.6rem clamp(2.2rem,4vw,5rem) 2rem;
+      background:
+        radial-gradient(circle at 78% 20%,rgba(255,79,121,.14),transparent 27%),
+        linear-gradient(135deg,#f8f3ed 0%,#eee2dc 55%,#e4c2c8 100%);
+      border-right:1px solid rgba(116,27,52,.13);
+      isolation:isolate;
+    }
+
+    #authScreen .auth-brand::before{
+      inset:0;
+      background:
+        linear-gradient(90deg,transparent 49.9%,rgba(116,27,52,.07) 50%,transparent 50.1%),
+        linear-gradient(transparent 49.9%,rgba(116,27,52,.055) 50%,transparent 50.1%);
+      background-size:86px 86px;
+      opacity:.6;
+      z-index:-2;
+    }
+
+    #authScreen .auth-brand::after{
+      content:'THE SKIN EDIT  /  CLUB ACCESS  /  01';
+      position:absolute;
+      right:1.25rem;
+      top:50%;
+      z-index:4;
+      writing-mode:vertical-rl;
+      transform:translateY(-50%);
+      color:rgba(116,27,52,.6);
+      font-size:.58rem;
+      font-weight:700;
+      letter-spacing:.28em;
+    }
+
+    #authScreen .auth-brand-top,
+    #authScreen .auth-brand-mid,
+    #authScreen .auth-brand-bot{z-index:3}
+
+    #authScreen .brand-mark{
+      gap:.85rem;
+      color:var(--fashion-ink);
+      font-size:.78rem;
+      font-weight:700;
+      letter-spacing:.34em;
+    }
+
+    #authScreen .brand-mark::after{
+      content:'MEMBERS CLUB';
+      padding-left:.9rem;
+      border-left:1px solid rgba(25,20,22,.25);
+      color:var(--fashion-wine);
+      font-size:.56rem;
+      letter-spacing:.24em;
+    }
+
+    #authScreen .brand-mark-dot{
+      width:42px;
+      height:42px;
+      border:1px solid rgba(116,27,52,.14);
+      box-shadow:0 10px 30px rgba(116,27,52,.12);
+    }
+
+    #authScreen .brand-mark-dot img{padding:4px}
+
+    #authScreen .auth-brand-mid{
+      width:100%;
+      margin-top:clamp(2rem,5vh,4.5rem);
+    }
+
+    #authScreen .auth-editorial-kicker{
+      display:flex;
+      align-items:center;
+      gap:.8rem;
+      margin-bottom:1.1rem;
+      color:var(--fashion-wine);
+      font-size:.62rem;
+      font-weight:800;
+      letter-spacing:.3em;
+    }
+
+    #authScreen .auth-editorial-kicker::before{
+      content:'01';
+      display:grid;
+      place-items:center;
+      width:30px;
+      height:30px;
+      border:1px solid currentColor;
+      border-radius:50%;
+      letter-spacing:0;
+    }
+
+    #authScreen .auth-brand-headline{
+      max-width:650px;
+      margin-bottom:1.25rem;
+      color:var(--fashion-ink);
+      font-family:'Cormorant Garamond',serif;
+      font-size:clamp(4.4rem,6.3vw,7.8rem);
+      font-weight:500;
+      line-height:.76;
+      letter-spacing:-.065em;
+      text-transform:uppercase;
+    }
+
+    #authScreen .auth-brand-headline em{
+      display:block;
+      margin:.06em 0 -.02em .7em;
+      color:var(--fashion-pink)!important;
+      font-family:'Cormorant Garamond',serif!important;
+      font-size:1.12em;
+      font-weight:500!important;
+      letter-spacing:-.06em;
+      text-transform:none;
+    }
+
+    #authScreen .auth-brand-sub{
+      width:53%;
+      max-width:470px;
+      color:#564b4e;
+      font-size:.98rem;
+      font-weight:400;
+      line-height:1.65;
+    }
+
+    #authScreen .auth-fashion-portrait{
+      position:absolute;
+      right:3.5rem;
+      bottom:0;
+      z-index:-1;
+      width:min(38%,410px);
+      height:72%;
+      object-fit:cover;
+      object-position:center 26%;
+      border-radius:220px 220px 0 0;
+      filter:saturate(.9) contrast(1.02);
+      box-shadow:0 25px 70px rgba(67,31,39,.16);
+    }
+
+    #authScreen .auth-fashion-portrait::selection{background:transparent}
+
+    #authScreen .auth-deck{
+      height:178px;
+      max-width:390px;
+      margin:1.25rem 0 .35rem;
+      z-index:4;
+    }
+
+    #authScreen .auth-deck img{
+      width:108px;
+      height:144px;
+      border:4px solid #fffaf5;
+      border-radius:3px;
+      box-shadow:0 18px 35px rgba(52,28,33,.2);
+    }
+
+    #authScreen .auth-deck img:nth-child(1){left:0}
+    #authScreen .auth-deck img:nth-child(2){left:65px}
+    #authScreen .auth-deck img:nth-child(3){left:130px}
+    #authScreen .auth-deck img:nth-child(4){left:195px}
+    #authScreen .auth-deck img:nth-child(5){left:260px}
+
+    #authScreen .auth-deck-caption{
+      margin-bottom:1rem;
+      color:#79686c;
+      font-size:.6rem;
+    }
+
+    #authScreen .auth-deck-caption b{color:var(--fashion-wine)}
+
+    #authScreen .auth-menu{
+      max-width:470px;
+      margin-bottom:.85rem;
+      padding:.25rem 1rem;
+      background:rgba(255,250,245,.64);
+      border:1px solid rgba(116,27,52,.11);
+      backdrop-filter:blur(14px);
+    }
+
+    #authScreen .auth-menu-row{padding:.6rem 0;border-color:rgba(116,27,52,.15)}
+    #authScreen .auth-menu-row:first-child{border-top:0}
+    #authScreen .auth-menu-row .name{color:var(--fashion-ink);font-size:.76rem}
+    #authScreen .auth-menu-row .name small{color:#806e72}
+    #authScreen .auth-menu-row .dots{border-color:rgba(116,27,52,.25)}
+    #authScreen .auth-menu-row .price{color:var(--fashion-ink);font-size:1.45rem}
+    #authScreen .auth-menu-row--star .price{color:var(--fashion-wine)}
+    #authScreen .auth-menu-row--star .name .reco{
+      color:var(--fashion-wine);
+      border-color:var(--fashion-pink);
+      background:rgba(255,79,121,.08);
+    }
+
+    #authScreen .auth-opiniones{display:none}
+
+    #authScreen .auth-fineline{
+      color:#76656a;
+      font-size:.56rem;
+      letter-spacing:.16em;
+    }
+
+    #authScreen .auth-brand-bot{margin-top:1rem}
+
+    #authScreen .auth-brand-stats{
+      max-width:470px;
+      gap:0;
+      justify-content:space-between;
+      padding-top:1rem;
+      border-top:1px solid rgba(116,27,52,.18);
+    }
+
+    #authScreen .auth-brand-stats>div{
+      min-width:30%;
+      padding-right:.7rem;
+      border-right:1px solid rgba(116,27,52,.13);
+    }
+
+    #authScreen .auth-brand-stats>div:last-child{border-right:0}
+    #authScreen .auth-stat-num{color:var(--fashion-wine);font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600}
+    #authScreen .auth-stat-label{color:#7a686d;font-size:.55rem;letter-spacing:.18em}
+
+    #authScreen .auth-form-wrap{
+      position:relative;
+      align-items:flex-start;
+      min-width:0;
+      min-height:100dvh;
+      padding:clamp(2rem,5vh,4.25rem) clamp(2rem,5vw,5.5rem);
+      overflow-y:auto;
+      background:
+        radial-gradient(circle at 100% 0,rgba(255,79,121,.09),transparent 24%),
+        #fffdfb;
+    }
+
+    #authScreen .auth-form-wrap::before{
+      content:'JOIN THE EDIT';
+      position:absolute;
+      top:1.5rem;
+      right:1.7rem;
+      color:rgba(116,27,52,.42);
+      font-size:.54rem;
+      font-weight:800;
+      letter-spacing:.3em;
+    }
+
+    #authScreen .auth-card{
+      max-width:480px;
+      margin:auto;
+      padding:clamp(1.6rem,3vw,2.5rem);
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(116,27,52,.1);
+      box-shadow:0 28px 80px rgba(69,31,40,.09);
+      backdrop-filter:blur(16px);
+    }
+
+    #authScreen .auth-free-line{
+      width:max-content;
+      max-width:100%;
+      margin:0 auto 1rem;
+      padding:.48rem .85rem;
+      color:#6e5a60;
+      background:#f9eef0;
+      border:1px solid rgba(255,79,121,.18);
+      border-radius:999px;
+      font-size:.75rem;
+      letter-spacing:.02em;
+    }
+
+    #authScreen .auth-free-line b{color:var(--fashion-wine)}
+    #authScreen .auth-free-line svg{background:var(--fashion-pink)}
+
+    #authScreen .auth-tabs{
+      width:100%;
+      margin-bottom:2rem;
+      padding:4px;
+      background:#f7f0ea;
+      border:1px solid rgba(116,27,52,.1);
+      border-radius:0;
+    }
+
+    #authScreen .auth-tab{
+      flex:1;
+      padding:.72rem 1rem;
+      border-radius:0;
+      color:#6f5d62;
+      font-size:.72rem;
+      font-weight:700;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+
+    #authScreen .auth-tab.active{
+      color:#fff;
+      background:var(--fashion-wine);
+      box-shadow:0 8px 22px rgba(116,27,52,.22);
+    }
+
+    #authScreen .auth-title{
+      color:var(--fashion-ink);
+      font-family:'Cormorant Garamond',serif;
+      font-size:clamp(2.5rem,4vw,3.6rem);
+      font-weight:500;
+      line-height:.88;
+      letter-spacing:-.045em;
+    }
+
+    #authScreen .auth-title em{
+      display:block;
+      color:var(--fashion-pink);
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.07em;
+      font-style:italic;
+      font-weight:500;
+    }
+
+    #authScreen .auth-subtitle{margin:.75rem 0 1.5rem;color:#75666a;font-size:.88rem;font-weight:400}
+    #authScreen .form-field{margin-bottom:.9rem}
+    #authScreen .form-field label{margin-bottom:.42rem;color:#5f4c51;font-size:.58rem;font-weight:800;letter-spacing:.22em}
+
+    #authScreen .form-field input,
+    #authScreen .form-field select,
+    #authScreen .form-field textarea{
+      padding:.82rem 1rem;
+      color:var(--fashion-ink);
+      background:#fbf6f1;
+      border:1px solid rgba(116,27,52,.14);
+      border-radius:0;
+      font-size:.88rem;
+    }
+
+    #authScreen .form-field input:focus,
+    #authScreen .form-field select:focus,
+    #authScreen .form-field textarea:focus{
+      background:#fff;
+      border-color:var(--fashion-pink);
+      box-shadow:0 0 0 3px rgba(255,79,121,.11);
+    }
+
+    #authScreen .btn-primary{
+      position:relative;
+      margin-top:.45rem;
+      padding:.95rem 1.2rem;
+      overflow:hidden;
+      color:#fff;
+      background:linear-gradient(110deg,var(--fashion-wine),#a52a4b 58%,var(--fashion-pink));
+      border-radius:0;
+      box-shadow:0 15px 35px rgba(116,27,52,.22);
+      font-size:.72rem;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    #authScreen .btn-primary:hover{
+      background:linear-gradient(110deg,#5f1028,var(--fashion-wine) 55%,#ff3d6d);
+      transform:translateY(-2px);
+      box-shadow:0 20px 42px rgba(116,27,52,.3);
+    }
+
+    #authScreen .terms-check{margin:.8rem 0;color:#77676b;font-size:.72rem;line-height:1.5}
+    #authScreen .terms-check a,#authScreen .auth-footer a{color:var(--fashion-wine);font-weight:700}
+    #authScreen .terms-check input[type="checkbox"]{accent-color:var(--fashion-pink)}
+
+    #authScreen .auth-divider{display:flex;align-items:center;gap:.75rem;margin:1rem 0}
+    #authScreen .auth-divider div{flex:1;height:1px;background:rgba(116,27,52,.12)}
+    #authScreen .auth-divider span{color:#8a797d;font-size:.68rem;font-weight:500}
+
+    #authScreen .google-auth-button{
+      width:100%;
+      padding:.8rem 1.2rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:.65rem;
+      color:var(--fashion-ink);
+      background:#fff;
+      border:1px solid rgba(116,27,52,.17);
+      border-radius:0;
+      font-family:inherit;
+      font-size:.82rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease;
+    }
+
+    #authScreen .google-auth-button:hover{border-color:var(--fashion-pink);transform:translateY(-1px);box-shadow:0 12px 28px rgba(116,27,52,.1)}
+    #authScreen .auth-footer{margin-top:1.15rem;color:#817176;font-size:.77rem}
+
+    @media (max-width:1180px){
+      #authScreen.active{grid-template-columns:minmax(0,1fr) minmax(440px,.82fr)}
+      #authScreen .auth-brand{padding-left:2.2rem;padding-right:2.2rem}
+      #authScreen .auth-brand-headline{font-size:clamp(4rem,6.5vw,5.9rem);max-width:520px}
+      #authScreen .auth-fashion-portrait{right:1.7rem;width:34%;opacity:.92}
+    }
+
+    @media (max-width:920px){
+      #authScreen.active{display:block}
+      #authScreen .auth-brand{display:flex!important;min-height:auto;padding:2rem 2rem 1.6rem}
+      #authScreen .auth-brand-mid{margin-top:2rem}
+      #authScreen .auth-brand-headline{max-width:620px;font-size:clamp(3.8rem,11vw,6rem)}
+      #authScreen .auth-brand-sub{width:52%;max-width:52%}
+      #authScreen .auth-fashion-portrait{right:3rem;width:34%;height:70%;opacity:.9}
+      #authScreen .auth-menu,#authScreen .auth-brand-stats{max-width:58%}
+      #authScreen .auth-form-wrap{min-height:auto;padding:3rem 1.5rem}
+      #authScreen .auth-card{margin:0 auto}
+    }
+
+    @media (max-width:640px){
+      #authScreen .auth-brand{padding:1.35rem 1.15rem 1.5rem}
+      #authScreen .brand-mark::after,#authScreen .auth-brand::after{display:none}
+      #authScreen .brand-mark-dot{width:36px;height:36px}
+      #authScreen .auth-brand-mid{margin-top:1.6rem}
+      #authScreen .auth-editorial-kicker{font-size:.52rem;letter-spacing:.2em}
+      #authScreen .auth-brand-headline{font-size:clamp(3.2rem,17vw,4.8rem);line-height:.78}
+      #authScreen .auth-brand-headline em{margin-left:.25em}
+      #authScreen .auth-brand-sub{width:100%;max-width:100%;font-size:.86rem}
+      #authScreen .auth-fashion-portrait{display:none}
+      #authScreen .auth-deck{height:140px;max-width:300px;margin:1rem auto .3rem}
+      #authScreen .auth-deck img{width:86px;height:116px;border-width:3px}
+      #authScreen .auth-deck img:nth-child(2){left:52px}
+      #authScreen .auth-deck img:nth-child(3){left:104px}
+      #authScreen .auth-deck img:nth-child(4){left:156px}
+      #authScreen .auth-deck img:nth-child(5){left:208px}
+      #authScreen .auth-menu,#authScreen .auth-brand-stats{max-width:100%}
+      #authScreen .auth-menu-row .dots{display:none}
+      #authScreen .auth-menu-row{justify-content:space-between;gap:.5rem}
+      #authScreen .auth-menu-row .name{white-space:normal}
+      #authScreen .auth-brand-stats{display:none}
+      #authScreen .auth-form-wrap{padding:2.4rem .85rem 2rem}
+      #authScreen .auth-form-wrap::before{top:.8rem;right:1rem}
+      #authScreen .auth-card{padding:1.35rem 1rem}
+      #authScreen .auth-free-line{font-size:.68rem}
+      #authScreen .auth-tabs{margin-bottom:1.5rem}
+      #authScreen .auth-title{font-size:2.65rem}
+      #authScreen .form-row{grid-template-columns:1fr}
+    }
   </style>
 
   <!-- FIREBASE SDK -->
@@ -4242,18 +4689,21 @@
     <div class="auth-brand">
       <div class="auth-brand-top">
         <div class="brand-mark">
-          <span class="brand-mark-dot"><img src="img/logo.png" alt="Dermalysse"></span>
+          <span class="brand-mark-dot"><img src="img/logo-dermalysse.png" alt="Dermalysse"></span>
           DERMALYSSE
         </div>
       </div>
 
       <div class="auth-brand-mid">
+        <p class="auth-editorial-kicker">THE BEAUTY KNOWLEDGE CLUB</p>
         <h1 class="auth-brand-headline">
-          Domina los tratamientos que tus clientas <em>ya te están pidiendo.</em>
+          La belleza <em>también</em> se estudia.
         </h1>
         <p class="auth-brand-sub">
-          Hidrafacial, linfodrenaje, manchas, cicatrices y más: cursos paso a paso, protocolos listos para cabina y certificados que respaldan tu trabajo.
+          Entra gratis, recorre todos los temarios y abre la primera clase de cada curso. Tu próxima era profesional empieza aquí.
         </p>
+
+        <img class="auth-fashion-portrait" src="img/fashion/fashion-hero.png" alt="Profesional Dermalysse en un retrato editorial" width="1024" height="1536">
 
         <div class="auth-deck" aria-hidden="true">
           <img src="img/cursos/hidrafacial.jpg" alt="">
@@ -4262,7 +4712,7 @@
           <img src="img/cursos/manchas.jpg" alt="">
           <img src="img/cursos/cicatrices.jpg" alt="">
         </div>
-        <p class="auth-deck-caption"><b>10+ cursos</b> · webinars en vivo · nuevos cada mes</p>
+        <p class="auth-deck-caption"><b>10+ cursos</b> · primeras clases abiertas · nuevos cada mes</p>
 
         <div class="auth-menu">
           <div class="auth-menu-row">
@@ -4320,16 +4770,16 @@
       <div class="auth-brand-bot">
         <div class="auth-brand-stats">
           <div>
-            <div class="auth-stat-num">10+</div>
-            <div class="auth-stat-label">Cursos</div>
+            <div class="auth-stat-num">01</div>
+            <div class="auth-stat-label">Clase abierta</div>
           </div>
           <div>
             <div class="auth-stat-num">24/7</div>
-            <div class="auth-stat-label">Acceso</div>
+            <div class="auth-stat-label">Exploración</div>
           </div>
           <div>
-            <div class="auth-stat-num">20%</div>
-            <div class="auth-stat-label">Descuento</div>
+            <div class="auth-stat-num">100%</div>
+            <div class="auth-stat-label">Perfil gratis</div>
           </div>
         </div>
       </div>
@@ -4341,7 +4791,7 @@
 
         <p class="auth-free-line">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-          Regístrate <b>completamente gratis</b>
+          Crea tu perfil <b>completamente gratis</b>
         </p>
         <div class="auth-tabs">
           <button class="auth-tab" data-tab="login">Iniciar sesión</button>
@@ -4350,8 +4800,8 @@
 
         <!-- LOGIN -->
         <div class="form-wrap" id="loginForm">
-          <h2 class="auth-title">Hola de nuevo</h2>
-          <p class="auth-subtitle">Ingresa tus datos para entrar al club.</p>
+          <h2 class="auth-title">Qué gusto <em>verte.</em></h2>
+          <p class="auth-subtitle">Continúa tu experiencia dentro del club.</p>
 
           <form onsubmit="event.preventDefault(); handleLogin(event); return false;">
             <div class="form-field">
@@ -4364,8 +4814,8 @@
             </div>
             <button type="button" class="btn-primary" onclick="handleLogin(event)">Entrar al club</button>
           </form>
-          <div style="display:flex;align-items:center;gap:.75rem;margin:1.25rem 0;"><div style="flex:1;height:1px;background:var(--border,#d5cdc0);"></div><span style="font-size:.82rem;color:var(--text-muted);font-weight:500;">o continúa con</span><div style="flex:1;height:1px;background:var(--border,#d5cdc0);"></div></div>
-          <button type="button" onclick="handleGoogleLogin()" style="width:100%;padding:.85rem 1.5rem;border:1.5px solid var(--border,#d5cdc0);border-radius:var(--radius-sm,12px);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.65rem;font-family:inherit;font-size:.95rem;font-weight:600;color:var(--text-primary,#3d2e1e);">
+          <div class="auth-divider"><div></div><span>o continúa con</span><div></div></div>
+          <button class="google-auth-button" type="button" onclick="handleGoogleLogin()">
             <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             Continuar con Google</button>
 
@@ -4377,8 +4827,8 @@
 
         <!-- REGISTER -->
         <div class="form-wrap active" id="registerForm">
-          <h2 class="auth-title">Únete al club</h2>
-          <p class="auth-subtitle">Completa tus datos para crear tu cuenta.</p>
+          <h2 class="auth-title">Tu nueva era <em>empieza aquí.</em></h2>
+          <p class="auth-subtitle">Crea tu cuenta y explora Dermalysse sin pagar.</p>
 
           <form onsubmit="return handleRegister(event)">
             <div class="form-row">
@@ -4409,8 +4859,8 @@
             </div>
             <button type="button" class="btn-primary" onclick="handleRegister(event)">Crear mi cuenta</button>
           </form>
-          <div style="display:flex;align-items:center;gap:.75rem;margin:1.25rem 0;"><div style="flex:1;height:1px;background:var(--border,#d5cdc0);"></div><span style="font-size:.82rem;color:var(--text-muted);font-weight:500;">o regístrate con</span><div style="flex:1;height:1px;background:var(--border,#d5cdc0);"></div></div>
-          <button type="button" onclick="handleGoogleLogin()" style="width:100%;padding:.85rem 1.5rem;border:1.5px solid var(--border,#d5cdc0);border-radius:var(--radius-sm,12px);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.65rem;font-family:inherit;font-size:.95rem;font-weight:600;color:var(--text-primary,#3d2e1e);">
+          <div class="auth-divider"><div></div><span>o regístrate con</span><div></div></div>
+          <button class="google-auth-button" type="button" onclick="handleGoogleLogin()">
             <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             Registrarme con Google</button>
 
@@ -5804,6 +6254,12 @@
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => switchTab(tab.dataset.tab));
     });
+
+    // Permite que el sitio público abra directamente el registro o el acceso.
+    const requestedAuthTab = new URLSearchParams(window.location.search).get('auth');
+    if (requestedAuthTab === 'login' || requestedAuthTab === 'register') {
+      switchTab(requestedAuthTab);
+    }
 
     // Fallback en memoria si localStorage no está disponible (sandbox iframe)
     const memStore = {};
