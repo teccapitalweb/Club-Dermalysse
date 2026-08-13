@@ -5959,6 +5959,8 @@
           completed: completedLessons.includes(i+1),
           current: !completedLessons.includes(i+1) && (i === 0 || completedLessons.includes(i)),
           locked: i > 0 && !completedLessons.includes(i),
+          provider: l.provider || (l.videoId ? 'bunny' : (l.drive ? 'drive' : '')),
+          videoId: l.videoId || '',
           drive: l.drive || ''
         }))
       };
@@ -6459,6 +6461,8 @@
             completed: completedLessons.includes(i+1),
             current: !completedLessons.includes(i+1) && (i === 0 || completedLessons.includes(i)),
             locked: i > 0 && !completedLessons.includes(i),
+            provider: l.provider || (l.videoId ? 'bunny' : (l.drive ? 'drive' : '')),
+            videoId: l.videoId || '',
             drive: l.drive || ''
           }))
         });
@@ -6979,7 +6983,7 @@
         if (lesson.completed) classes.push('completed');
         else classes.push('current');
 
-        const hasVideo = !!lesson.drive;
+        const hasVideo = !!(lesson.videoId || lesson.drive);
 
         let statusTag;
         if (lesson.completed) {
@@ -7007,7 +7011,7 @@
       }).join('');
     }
 
-    function playLesson(lessonId) {
+    async function playLesson(lessonId) {
       const course = COURSES.find(c => c.id === currentCourseId);
       if (!course) return;
       const lesson = (course.lessons || []).find(l => l.id === lessonId);
@@ -7017,7 +7021,27 @@
       const body = document.getElementById('videoPlayerBody');
       document.getElementById('videoPlayerTitle').textContent = lesson.title;
 
-      if (lesson.drive) {
+      if (lesson.videoId) {
+        body.innerHTML = `<div class="video-player-no-video"><div>Cargando video protegido…</div></div>`;
+        player.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        try {
+          const user = auth.currentUser;
+          if (!user) throw new Error('La sesión venció; vuelve a iniciar sesión');
+          const idToken = await user.getIdToken();
+          const response = await fetch(WEBHOOK_SERVER + '/api/bunny/embed-token', {
+            method: 'POST',
+            headers: {'Authorization':'Bearer '+idToken,'Content-Type':'application/json'},
+            body: JSON.stringify({videoId:lesson.videoId})
+          });
+          const data = await response.json().catch(function(){return {}});
+          if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
+          body.innerHTML = `<iframe class="video-player-iframe" src="${data.embedUrl}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+        } catch (error) {
+          console.error('[Bunny player]', error);
+          body.innerHTML = `<div class="video-player-no-video"><div>No se pudo abrir esta clase.<br>${String(error.message||'Intenta nuevamente').replace(/[<>&]/g,'')}</div></div>`;
+        }
+      } else if (lesson.drive) {
         const embedUrl = driveVideoEmbed(lesson.drive);
         if (embedUrl) {
           body.innerHTML = `<iframe class="video-player-iframe" src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
