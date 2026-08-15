@@ -4720,12 +4720,58 @@
     @media (display-mode: standalone) {
       .pwa-install-btn { display: none !important; }
     }
+
+    .app-loading{
+      position:fixed;
+      inset:0;
+      z-index:10020;
+      display:none;
+      place-items:center;
+      padding:1.5rem;
+      background:rgba(255,250,247,.94);
+      backdrop-filter:blur(18px);
+    }
+    .app-loading.active{display:grid}
+    .app-loading-card{text-align:center;color:var(--fashion-ink,#171214)}
+    .app-loading-mark{width:58px;height:58px;margin:0 auto 1rem;border:1px solid rgba(116,27,52,.18);border-radius:50%;display:grid;place-items:center;background:white;box-shadow:0 14px 36px rgba(116,27,52,.12)}
+    .app-loading-mark img{width:38px;height:38px;object-fit:contain}
+    .app-loading-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;line-height:1}
+    .app-loading-text{margin-top:.45rem;color:#77676b;font-size:.82rem}
+    .app-loading-dots{display:flex;justify-content:center;gap:.35rem;margin-top:1rem}
+    .app-loading-dots i{width:6px;height:6px;border-radius:50%;background:var(--fashion-pink,#ff4f79);animation:loadingDot 1s ease-in-out infinite}
+    .app-loading-dots i:nth-child(2){animation-delay:.15s}.app-loading-dots i:nth-child(3){animation-delay:.3s}
+    @keyframes loadingDot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+
+    .mobile-app-nav{display:none}
+    @media (max-width:640px){
+      .app-main{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+      .mobile-app-nav{
+        position:fixed;
+        z-index:900;
+        left:max(.7rem,env(safe-area-inset-left));
+        right:max(.7rem,env(safe-area-inset-right));
+        bottom:max(.6rem,env(safe-area-inset-bottom));
+        min-height:64px;
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        padding:.35rem;
+        background:rgba(255,253,251,.94);
+        border:1px solid rgba(116,27,52,.13);
+        border-radius:18px;
+        box-shadow:0 18px 46px rgba(56,24,33,.18);
+        backdrop-filter:blur(18px);
+      }
+      .mobile-app-nav button{min-width:0;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;color:#857379;border-radius:14px;font-family:inherit;font-size:.6rem;font-weight:700;letter-spacing:.04em}
+      .mobile-app-nav button svg{width:21px;height:21px}
+      .mobile-app-nav button.active{color:white;background:linear-gradient(135deg,var(--fashion-wine,#741b34),#a52a4b);box-shadow:0 9px 24px rgba(116,27,52,.22)}
+    }
   </style>
 
   <!-- FIREBASE SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="access-policy.js"></script>
   <script src="data/dermalysse-courses.js"></script>
   <script>
     const firebaseConfig={apiKey:"AIzaSyC3EQ9hcS7wusPAgmL3LvCyB_QV_kpIP4g",authDomain:"club-dermalysse.firebaseapp.com",projectId:"club-dermalysse",storageBucket:"club-dermalysse.firebasestorage.app",messagingSenderId:"1075584613391",appId:"1:1075584613391:web:71abdd47c4364a27daf77a"};
@@ -5915,6 +5961,29 @@
       </section>
 
     </main>
+    <nav class="mobile-app-nav" aria-label="Navegación principal móvil">
+      <button type="button" class="active" data-view="inicio" onclick="goTo('inicio')" aria-label="Inicio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V21h-6v-7H9v7H3z"/></svg><span>Inicio</span>
+      </button>
+      <button type="button" data-view="biblioteca" onclick="goTo('biblioteca')" aria-label="Cursos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16"/></svg><span>Cursos</span>
+      </button>
+      <button type="button" data-view="pdf" onclick="goTo('pdf')" aria-label="Materiales">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>Materiales</span>
+      </button>
+      <button type="button" data-view="perfil" onclick="goTo('perfil')" aria-label="Perfil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Perfil</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="app-loading" id="appLoading" role="status" aria-live="polite">
+    <div class="app-loading-card">
+      <div class="app-loading-mark"><img src="img/logo-dermalysse.png" alt=""></div>
+      <div class="app-loading-title">Preparando tu club</div>
+      <div class="app-loading-text">Cursos, progreso y beneficios en un momento.</div>
+      <div class="app-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    </div>
   </div>
 
   <!-- VIDEO PLAYER -->
@@ -5952,10 +6021,10 @@
       webinars: 'dermalysse_sync_webinars',
       pdfs: 'dermalysse_sync_pdfs',
       news: 'dermalysse_sync_news',
-      notifs: 'dermalysse_sync_notifs',
-      members: 'dermalysse_sync_members'
+      notifs: 'dermalysse_sync_notifs'
     };
-    function syncRead(key) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : null; } catch(e) { return null; } }
+    const _firestoreContent = Object.create(null);
+    function syncRead(key) { return _firestoreContent[key] || null; }
 
     // ═══ GOOGLE DRIVE URL TRANSFORMERS ═══
     function driveFileId(url) {
@@ -6006,12 +6075,19 @@
       const ids = courses.map(c => c && c.id).filter(Boolean);
       return ids.length <= 3 && ids.every(id => ['c-01','c-02','c-03'].includes(id));
     }
+    let _userProgress = {};
+
+    function completedLessonsFor(courseId) {
+      const value = _userProgress && _userProgress[courseId];
+      return Array.isArray(value) ? value.map(Number).filter(Number.isFinite) : [];
+    }
+
     function selectCourseCatalog(courses) {
       const bundled = Array.isArray(window.DERMALYSSE_COURSES) ? window.DERMALYSSE_COURSES : [];
       if (!Array.isArray(courses) || !courses.length || isLegacyDemoCatalog(courses)) return bundled;
       const realIds = new Set(bundled.map(c => c.id));
       if (courses.some(c => realIds.has(c && c.id))) {
-        return courses.filter(c => !['c-01','c-02','c-03'].includes(c && c.id));
+        return courses.filter(c => realIds.has(c && c.id));
       }
       return courses;
     }
@@ -6023,9 +6099,7 @@
       const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
 
       // Cargar progreso guardado
-      const progressKey = 'dermalysse_progress_' + c.id;
-      let completedLessons = [];
-      try { completedLessons = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
+      const completedLessons = completedLessonsFor(c.id);
 
       const totalLessons = (c.lessons||[]).length;
       const completedCount = completedLessons.length;
@@ -6378,6 +6452,7 @@
       try {
         const user = auth.currentUser;
         if (user) {
+          _userProgress = {};
           const ud = await db.collection('users').doc(user.uid).get();
           if (ud.exists) {
             const data = ud.data();
@@ -6393,21 +6468,16 @@
             };
             safeSet(PROFILE_KEY, JSON.stringify(profileData));
             if(data.gotas!==undefined)safeSet('dermalysse_gotas',String(data.gotas));
-            // Cargar progreso de cursos desde Firestore
-            // Primero limpiar progreso del usuario anterior
-            Object.keys(localStorage).filter(k => k.startsWith('dermalysse_progress_')).forEach(k => localStorage.removeItem(k));
-            const progress = data.progress || {};
-            Object.keys(progress).forEach(courseId => {
-              safeSet('dermalysse_progress_' + courseId, JSON.stringify(progress[courseId]));
-            });
+            // Firestore es la fuente canónica del progreso del usuario actual.
+            _userProgress = data.progress && typeof data.progress === 'object' ? data.progress : {};
           }
         }
-        const cols={courses:'dermalysse_sync_courses',webinars:'dermalysse_sync_webinars',pdfs:'dermalysse_sync_pdfs',news:'dermalysse_sync_news',notifications:'dermalysse_sync_notifs',members:'dermalysse_sync_members'};
+        const cols={courses:'dermalysse_sync_courses',webinars:'dermalysse_sync_webinars',pdfs:'dermalysse_sync_pdfs',news:'dermalysse_sync_news',notifications:'dermalysse_sync_notifs'};
         for(const[col,lsKey] of Object.entries(cols)){
           const snap=await db.collection(col).get();
-          if(!snap.empty){const data=snap.docs.map(d=>({id:d.id,...d.data()}));safeSet(lsKey,JSON.stringify(data));}else{localStorage.removeItem(lsKey);}
+          if(!snap.empty){_firestoreContent[lsKey]=snap.docs.map(d=>({id:d.id,...d.data()}));}else{delete _firestoreContent[lsKey];}
         }
-        console.log('✅ Firestore → localStorage sincronizado');
+        console.log('✅ Contenido cargado desde Firestore');
       } catch(e){console.error('Firestore load error:',e);}
     }
 
@@ -6539,9 +6609,7 @@
       _rawCourses.filter(c => c.status === 'published').forEach(c => {
         const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + parseDurToMin(l.dur), 0) : 0;
         const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
-        const progressKey = 'dermalysse_progress_' + c.id;
-        let completedLessons = [];
-        try { completedLessons = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
+        const completedLessons = completedLessonsFor(c.id);
         const totalLessons = (c.lessons||[]).length;
         const completedCount = completedLessons.length;
         const progress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
@@ -6705,6 +6773,7 @@
       if (!confirm('¿Cerrar sesión?')) return;
       try{await auth.signOut();}catch(e){}
       safeRemove(AUTH_KEY); safeRemove(PROFILE_KEY);
+      _userProgress = {};
       document.getElementById('appScreen').classList.remove('active');
       document.getElementById('authScreen').classList.add('active');
       switchTab('login');
@@ -6772,6 +6841,7 @@
 
     function goTo(view) {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+      document.querySelectorAll('.mobile-app-nav button').forEach(n => n.classList.toggle('active', n.dataset.view === view));
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
       window.scrollTo({ top: 0, behavior: 'instant' });
       closeSidebar();
@@ -6791,9 +6861,10 @@
     var DRIP_DAYS = 15; // Días entre cada curso
     // MODIFICADO: acceso por suscripción Stripe O por días de cortesía (vigenciaHasta)
     function _tieneAcceso(){
-      if (_userSubscription.status === 'active') return true;
-      if (_userSubscription.vigenciaHasta && new Date(_userSubscription.vigenciaHasta) > new Date()) return true;
-      return false;
+      return window.DermalysseAccess.hasCurrentMembership({
+        subscription: _userSubscription,
+        vigenciaHasta: _userSubscription.vigenciaHasta
+      });
     }
 
     function requireMembership(actionLabel) {
@@ -7216,29 +7287,29 @@
       }
     }
 
-    function markLessonComplete(courseId, lessonId) {
+    async function markLessonComplete(courseId, lessonId) {
       if (!requireMembership('Guardar el progreso')) return;
-      const progressKey = 'dermalysse_progress_' + courseId;
-      let completed = [];
-      try { completed = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
+      const completed = completedLessonsFor(courseId);
 
       if (!completed.includes(lessonId)) {
         completed.push(lessonId);
-        localStorage.setItem(progressKey, JSON.stringify(completed));
+        _userProgress[courseId] = completed;
 
-        // Sincronizar progreso con Firestore
+        // Guardar primero en la fuente canónica del usuario.
         try {
           const user = auth.currentUser;
           if (user) {
             const progressUpdate = {};
             progressUpdate['progress.' + courseId] = completed;
-            db.collection('users').doc(user.uid).update(progressUpdate).catch(function() {
-              // Si falla update (doc no existe), crear con set
-              db.collection('users').doc(user.uid).set(progressUpdate, { merge: true });
-            });
+            await db.collection('users').doc(user.uid).set(progressUpdate, { merge: true });
             console.log('✅ Progreso sincronizado:', courseId, completed.length, 'lecciones');
           }
-        } catch(e) { console.error('Progress sync error:', e); }
+        } catch(e) {
+          _userProgress[courseId] = completed.filter(id => id !== lessonId);
+          showToast('No se pudo guardar el progreso. Intenta nuevamente.');
+          console.error('Progress sync error:', e);
+          return;
+        }
 
         const course = COURSES.find(c => c.id === courseId);
         if (course) {
@@ -8878,7 +8949,11 @@
         if (_udata.regaloDesde) _userSubscription.regaloDesde = _udata.regaloDesde;
         if (!sub.subscribedAt && sub.status === 'active') _userSubscription.subscribedAt = sub.updatedAt || new Date().toISOString();
 
-        if (sub.status === 'active') {
+        const stripeAccess = _tieneAcceso() && (
+          ['active', 'trialing', 'canceled'].includes(String(sub.status || '').toLowerCase())
+          || sub.cancelAtPeriodEnd === true
+        );
+        if (stripeAccess) {
           // Mostrar info de suscripción activa
           document.getElementById('subActive').style.display = '';
           document.getElementById('subPlans').style.display = 'none';
@@ -8891,13 +8966,15 @@
             : (sub.plan === 'anual' ? (window.__PRECIO_ANO || 1799) : (window.__PRECIO_MES || 200));
           document.getElementById('subPlanPrice').innerHTML =
             '<strong>$' + _precioPagado.toLocaleString('es-MX') + ' MXN</strong> / ' + (sub.plan === 'anual' ? 'año' : 'mes');
-          document.getElementById('subStatus').innerHTML = sub.cancelAtPeriodEnd ? '● Cancelación programada' : '● Activa';
-          document.getElementById('subStatus').style.color = sub.cancelAtPeriodEnd ? '#b91c1c' : 'var(--success)';
+          const ending = sub.cancelAtPeriodEnd || sub.status === 'canceled';
+          const trialing = sub.status === 'trialing';
+          document.getElementById('subStatus').innerHTML = ending ? '● Acceso vigente · cancelación programada' : (trialing ? '● Periodo de prueba' : '● Activa');
+          document.getElementById('subStatus').style.color = ending ? '#b16b25' : 'var(--success)';
           if (sub.currentPeriodEnd) {
             document.getElementById('subNextBill').textContent = new Date(sub.currentPeriodEnd).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
           }
           // Mostrar/ocultar botón cancelar vs mensaje de cancelación
-          if (sub.cancelAtPeriodEnd) {
+          if (ending) {
             document.getElementById('btnCancelSub').style.display = 'none';
             document.getElementById('subCancelMsg').style.display = '';
             document.getElementById('subCancelDate').textContent = new Date(sub.currentPeriodEnd).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -9160,10 +9237,17 @@
     }
 
     // ─── AUTO-LOGIN FIREBASE ───
+    function setAppLoading(visible) {
+      const loader = document.getElementById('appLoading');
+      if (loader) loader.classList.toggle('active', !!visible);
+    }
+
     auth.onAuthStateChanged(async function(user) {
       await loadPlatformConfig();
 
       if (user) {
+        setAppLoading(true);
+        try {
         // Check mantenimiento
         if (_platformConfig.maintenance) {
           try {
@@ -9178,13 +9262,16 @@
           }
         }
 
-        hideMaintenanceScreen();
-        safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
-        await _loadFirestoreData();
-        _rebuildSyncData();
-        document.getElementById('authScreen').classList.remove('active');
-        document.getElementById('appScreen').classList.add('active');
-        enterApp();
+          hideMaintenanceScreen();
+          safeSet(AUTH_KEY, JSON.stringify({email:user.email,uid:user.uid,loggedAt:Date.now()}));
+          await _loadFirestoreData();
+          _rebuildSyncData();
+          document.getElementById('authScreen').classList.remove('active');
+          document.getElementById('appScreen').classList.add('active');
+          enterApp();
+        } finally {
+          setAppLoading(false);
+        }
       }
     });
 
@@ -9271,7 +9358,17 @@
 
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js').catch(function(error) {
+        navigator.serviceWorker.register('./sw.js').then(function(registration) {
+          registration.addEventListener('updatefound', function() {
+            const worker = registration.installing;
+            if (!worker) return;
+            worker.addEventListener('statechange', function() {
+              if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                showToast('Hay una actualización del Club. Se aplicará al volver a abrir.');
+              }
+            });
+          });
+        }).catch(function(error) {
           console.warn('[Club] No se pudo registrar el modo instalable:', error.message);
         });
       });
