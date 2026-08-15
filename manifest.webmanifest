@@ -1,0 +1,35 @@
+{
+  "id": "./",
+  "name": "Club Dermalysse",
+  "short_name": "Dermalysse",
+  "description": "Formación profesional en belleza, piel, nutrición y bienestar.",
+  "lang": "es-MX",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#fffdfb",
+  "theme_color": "#741b34",
+  "categories": ["education", "lifestyle"],
+  "icons": [
+    {
+      "src": "img/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

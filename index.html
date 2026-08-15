@@ -2,10 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#741b34">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Dermalysse">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="Club Dermalysse: formación profesional en belleza, piel, nutrición y bienestar.">
   <title>DERMALYSSE · Club de Miembros</title>
-  <link rel="icon" type="image/png" href="img/logo.png">
-  <link rel="apple-touch-icon" href="img/logo.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400;1,9..40,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet">
@@ -97,6 +105,7 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      -webkit-tap-highlight-color: transparent;
     }
 
     button, input, select, textarea {
@@ -469,7 +478,7 @@
     #appScreen.active {
       display: grid;
       grid-template-columns: 280px 1fr;
-      min-height: 100vh;
+      min-height: 100dvh;
       background: var(--bg-base);
     }
 
@@ -481,7 +490,7 @@
     .sidebar {
       position: sticky;
       top: 0;
-      height: 100vh;
+      height: 100dvh;
       background: var(--bg-surface);
       border-right: 1px solid var(--border-soft);
       display: flex;
@@ -763,6 +772,23 @@
     }
 
     .icon-btn svg { width: 18px; height: 18px; }
+
+    .pwa-install-btn {
+      display: none;
+      align-items: center;
+      gap: .45rem;
+      min-height: 40px;
+      padding: .55rem .9rem;
+      border: 1px solid var(--accent-border);
+      border-radius: 999px;
+      color: var(--azul-dark);
+      background: var(--azul-ghost);
+      font-size: .75rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pwa-install-btn.visible { display: inline-flex; }
+    .pwa-install-btn svg { width: 16px; height: 16px; }
 
     .icon-btn .dot-notif {
       position: absolute;
@@ -4652,6 +4678,39 @@
       #authScreen .auth-tabs{margin-bottom:1.5rem}
       #authScreen .auth-title{font-size:2.65rem}
       #authScreen .form-row{grid-template-columns:1fr}
+
+      .topbar {
+        min-height: 64px;
+        padding: max(.7rem, env(safe-area-inset-top)) max(.85rem, env(safe-area-inset-right)) .7rem max(.85rem, env(safe-area-inset-left));
+      }
+      .view {
+        width: 100%;
+        padding: 1.35rem max(.9rem, env(safe-area-inset-right)) calc(1.75rem + env(safe-area-inset-bottom)) max(.9rem, env(safe-area-inset-left));
+      }
+      .view-header { margin-bottom: 1.35rem; }
+      .view-title { font-size: clamp(1.75rem, 9vw, 2.2rem); overflow-wrap: anywhere; }
+      .courses-grid, .pdf-grid { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+      .course-card { width: 100%; }
+      .course-body { padding: 1rem 1.05rem 1.15rem; }
+      .course-name { font-size: 1.15rem; }
+      .course-detail-info { padding: 1.35rem 1.1rem; }
+      .lesson-item { gap: .7rem; padding: .95rem .8rem; align-items: flex-start; }
+      .lesson-number { width: 32px; height: 32px; font-size: .78rem; }
+      .lesson-title { font-size: .96rem; line-height: 1.3; }
+      .lesson-title > span { display: block; width: max-content; margin: .35rem 0 0 !important; }
+      .lesson-play-btn, .icon-btn, .hamburger-btn { width: 44px; height: 44px; min-width: 44px; }
+      .video-player-overlay { padding: 0; align-items: center; }
+      .video-player-card { border-radius: 0; }
+      .video-player-head { padding: .8rem .9rem; }
+      .explorer-banner { padding: 1rem !important; }
+      .explorer-banner > div { align-items: flex-start !important; }
+      .pwa-install-btn { width: 44px; padding: 0; justify-content: center; }
+      .pwa-install-btn span { display: none; }
+      .toast { left: max(.75rem, env(safe-area-inset-left)); right: max(.75rem, env(safe-area-inset-right)); bottom: calc(1rem + env(safe-area-inset-bottom)); width: auto; }
+    }
+
+    @media (display-mode: standalone) {
+      .pwa-install-btn { display: none !important; }
     }
   </style>
 
@@ -4659,6 +4718,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="data/dermalysse-courses.js"></script>
   <script>
     const firebaseConfig={apiKey:"AIzaSyC3EQ9hcS7wusPAgmL3LvCyB_QV_kpIP4g",authDomain:"club-dermalysse.firebaseapp.com",projectId:"club-dermalysse",storageBucket:"club-dermalysse.firebasestorage.app",messagingSenderId:"1075584613391",appId:"1:1075584613391:web:71abdd47c4364a27daf77a"};
     const firebaseApp=firebase.initializeApp(firebaseConfig);
@@ -4999,6 +5059,10 @@
         </button>
         <div style="flex:1;"></div>
         <div class="topbar-actions">
+          <button class="pwa-install-btn" id="pwaInstallBtn" type="button" aria-label="Instalar Club Dermalysse" onclick="installDermalysseApp()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2"/></svg>
+            <span>Instalar app</span>
+          </button>
           <div class="dark-toggle-wrap">
             <button class="icon-btn" onclick="toggleDarkMode()" aria-label="Modo oscuro" id="darkModeBtn">
               <svg class="dark-toggle-icon" id="darkModeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -5027,7 +5091,7 @@
             </div>
             <div class="welcome-eyebrow" id="greetingTime">Buenos días</div>
             <h1 class="welcome-title">Hola, <span id="welcomeName">Alex</span>. <br>Belleza, ciencia y salud para tu piel.</h1>
-            <p class="welcome-text">Tienes acceso completo al catálogo. Retoma donde te quedaste o descubre un nuevo tratamiento hoy mismo.</p>
+            <p class="welcome-text">Explora el catálogo completo, conoce cada temario y comienza gratis con el primer video de cada curso.</p>
             <div id="webinarCountdown" class="webinar-countdown" onclick="goTo('webinar')" style="display:none;">
               <div class="countdown-left">
                 <div class="countdown-eyebrow">
@@ -5903,6 +5967,7 @@
     }
 
     function driveImageUrl(url) {
+      if (/^(?:\.\/)?img\/[a-zA-Z0-9_./-]+\.(?:png|jpe?g|webp)$/i.test(String(url || ''))) return url;
       const id = driveFileId(url);
       return id ? 'https://drive.google.com/thumbnail?id=' + id + '&sz=w800' : '';
     }
@@ -5926,8 +5991,25 @@
       return parseInt(s) || 0;
     }
 
+    // Cursos: transformar formato Admin → Club. La semilla antigua se ignora si
+    // todavía siguen presentes únicamente los IDs demostrativos c-01, c-02 y c-03.
+    function isLegacyDemoCatalog(courses) {
+      if (!Array.isArray(courses) || !courses.length) return false;
+      const ids = courses.map(c => c && c.id).filter(Boolean);
+      return ids.length <= 3 && ids.every(id => ['c-01','c-02','c-03'].includes(id));
+    }
+    function selectCourseCatalog(courses) {
+      const bundled = Array.isArray(window.DERMALYSSE_COURSES) ? window.DERMALYSSE_COURSES : [];
+      if (!Array.isArray(courses) || !courses.length || isLegacyDemoCatalog(courses)) return bundled;
+      const realIds = new Set(bundled.map(c => c.id));
+      if (courses.some(c => realIds.has(c && c.id))) {
+        return courses.filter(c => !['c-01','c-02','c-03'].includes(c && c.id));
+      }
+      return courses;
+    }
+
     // Cursos: transformar formato Admin → Club
-    let _rawCourses = syncRead(SYNC_KEYS.courses) || [];
+    let _rawCourses = selectCourseCatalog(syncRead(SYNC_KEYS.courses));
     let COURSES = _rawCourses.filter(c => c.status === 'published').map(c => {
       const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + parseDurToMin(l.dur), 0) : 0;
       const durText = totalMin >= 60 ? Math.floor(totalMin/60) + ' h ' + (totalMin%60 > 0 ? totalMin%60 + ' min' : '') : totalMin + ' min';
@@ -5954,6 +6036,7 @@
         temario: c.temario || '',
         lessons: (c.lessons||[]).map((l,i) => ({
           id: i+1,
+          contentId: l.id || '',
           title: l.name,
           duration: l.dur || '',
           completed: completedLessons.includes(i+1),
@@ -5961,7 +6044,11 @@
           locked: i > 0 && !completedLessons.includes(i),
           provider: l.provider || (l.videoId ? 'bunny' : (l.drive ? 'drive' : '')),
           videoId: l.videoId || '',
-          drive: l.drive || ''
+          drive: l.drive || '',
+          isPreview: !!l.isPreview,
+          previewUnavailable: !!l.previewUnavailable,
+          isCombinedSessionFile: !!l.isCombinedSessionFile,
+          sessionNumbers: l.sessionNumbers || []
         }))
       };
     });
@@ -6439,7 +6526,7 @@
     // ─── Reconstruir datos desde localStorage (tras _loadFirestoreData) ───
     function _rebuildSyncData() {
       // CURSOS
-      _rawCourses = syncRead(SYNC_KEYS.courses) || [];
+      _rawCourses = selectCourseCatalog(syncRead(SYNC_KEYS.courses));
       COURSES.length = 0;
       _rawCourses.filter(c => c.status === 'published').forEach(c => {
         const totalMin = c.lessons ? c.lessons.reduce((s,l) => s + parseDurToMin(l.dur), 0) : 0;
@@ -6457,13 +6544,16 @@
           description: c.desc || (c.name + '. Curso de nivel ' + c.level + ' impartido por ' + (c.instructor||'') + '.'),
           instructor: c.instructor || '', img: c.img || '', temario: c.temario || '',
           lessons: (c.lessons||[]).map((l,i) => ({
-            id: i+1, title: l.name, duration: l.dur || '',
+            id: i+1, contentId: l.id || '', title: l.name, duration: l.dur || '',
             completed: completedLessons.includes(i+1),
             current: !completedLessons.includes(i+1) && (i === 0 || completedLessons.includes(i)),
             locked: i > 0 && !completedLessons.includes(i),
             provider: l.provider || (l.videoId ? 'bunny' : (l.drive ? 'drive' : '')),
             videoId: l.videoId || '',
-            drive: l.drive || ''
+            drive: l.drive || '', isPreview: !!l.isPreview,
+            previewUnavailable: !!l.previewUnavailable,
+            isCombinedSessionFile: !!l.isCombinedSessionFile,
+            sessionNumbers: l.sessionNumbers || []
           }))
         });
       });
@@ -6697,6 +6787,24 @@
       if (_userSubscription.vigenciaHasta && new Date(_userSubscription.vigenciaHasta) > new Date()) return true;
       return false;
     }
+
+    function requireMembership(actionLabel) {
+      if (_tieneAcceso()) return true;
+      showToast((actionLabel || 'Esta acción') + ' requiere una membresía vigente');
+      goTo('suscripcion');
+      return false;
+    }
+
+    async function authenticatedPost(path, body) {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Inicia sesión para continuar');
+      const idToken = await user.getIdToken();
+      return fetch(WEBHOOK_SERVER + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+        body: JSON.stringify(body || {})
+      });
+    }
     // Fecha base del goteo: activos por Stripe usan subscribedAt; regalados usan regaloDesde
     function _accesoBaseDate(){
       if (_userSubscription.status === 'active' && _userSubscription.subscribedAt) return new Date(_userSubscription.subscribedAt);
@@ -6738,7 +6846,7 @@
 
       if (!dripUnlocked) {
         return `
-        <article class="course-card" style="cursor:default;" onclick="showToast('Disponible en ${daysLeft} días')">
+        <article class="course-card" onclick="openCourse('${c.id}')">
           <div class="course-thumb" style="position:relative;">
             ${imgTag}
             <div class="course-thumb-overlay"></div>
@@ -6750,7 +6858,7 @@
             <h3 class="course-name">${c.name}</h3>
             <div class="course-meta" style="display:flex;justify-content:space-between;align-items:center;">
               <span class="course-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>${c.cat}</span>
-              <span style="font-size:.75rem;font-weight:600;color:var(--azul-dark);display:inline-flex;align-items:center;gap:.3rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>En ${daysLeft} días</span>
+              <span style="font-size:.75rem;font-weight:600;color:var(--azul-dark);display:inline-flex;align-items:center;gap:.3rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Premium en ${daysLeft} días · primera clase abierta</span>
             </div>
             <div class="course-progress"><div class="course-progress-bar" style="width:0%;"></div></div>
           </div>
@@ -6894,20 +7002,9 @@
     }
 
     function openCourse(courseId) {
-      if (!_tieneAcceso()) {
-        showToast('Suscríbete para acceder a los cursos');
-        goTo('suscripcion');
-        return;
-      }
       currentCourseId = courseId;
       const course = COURSES.find(c => c.id === courseId);
       if (!course) return;
-      // Verificar si el curso está desbloqueado
-      const unlock = isCourseUnlocked(course);
-      if (!unlock.unlocked) {
-        showToast(unlock.reason);
-        return;
-      }
 
       // Hero visual con imagen del curso (Drive o local)
       const visual = document.getElementById('courseDetailVisual');
@@ -6979,8 +7076,12 @@
           numberContent = String(lesson.id || (idx + 1)).padStart(2, '0');
         }
 
+        const course = COURSES.find(c => c.id === currentCourseId);
+        const access = course ? isCourseUnlocked(course) : { unlocked: false };
+        const isLocked = !lesson.isPreview && !access.unlocked;
         const classes = ['lesson-item'];
-        if (lesson.completed) classes.push('completed');
+        if (isLocked) classes.push('locked');
+        else if (lesson.completed) classes.push('completed');
         else classes.push('current');
 
         const hasVideo = !!(lesson.videoId || lesson.drive);
@@ -6988,6 +7089,10 @@
         let statusTag;
         if (lesson.completed) {
           statusTag = '<span style="font-size:.68rem;color:var(--success);font-weight:600;margin-left:.5rem;">Completada</span>';
+        } else if (lesson.isPreview && hasVideo) {
+          statusTag = '<span style="font-size:.68rem;color:var(--success);font-weight:700;margin-left:.5rem;">Primera clase gratis</span>';
+        } else if (isLocked) {
+          statusTag = '<span style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-left:.5rem;">Solo miembros</span>';
         } else if (hasVideo) {
           statusTag = '<span style="font-size:.68rem;color:var(--success);font-weight:600;margin-left:.5rem;">● Video</span>';
         } else {
@@ -7004,7 +7109,7 @@
               <div class="lesson-duration"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${lesson.duration}</div>
             </div>
             <button class="lesson-play-btn" ${!hasVideo?'style="opacity:.25;cursor:default;"':''} onclick="event.stopPropagation(); playLesson(${lesson.id || (idx + 1)})">
-              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              ${isLocked?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>':'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
             </button>
           </div>
         `;
@@ -7017,29 +7122,42 @@
       const lesson = (course.lessons || []).find(l => l.id === lessonId);
       if (!lesson) return;
 
+      const access = isCourseUnlocked(course);
+      if (!lesson.isPreview && !access.unlocked) {
+        if (!_tieneAcceso()) {
+          showToast('Esta clase requiere membresía. La primera clase del curso es gratuita.');
+          goTo('suscripcion');
+        } else {
+          showToast(access.reason || 'Esta clase todavía no está disponible');
+        }
+        return;
+      }
+
       const player = document.getElementById('videoPlayer');
       const body = document.getElementById('videoPlayerBody');
       document.getElementById('videoPlayerTitle').textContent = lesson.title;
 
       if (lesson.videoId) {
-        body.innerHTML = `<div class="video-player-no-video"><div>Cargando video protegido…</div></div>`;
+        const user = auth.currentUser;
+        if (!user) {
+          showToast('Inicia sesión para reproducir la clase gratuita');
+          return;
+        }
+        body.innerHTML = '<div class="video-player-no-video"><div>Preparando reproducción segura…</div></div>';
         player.classList.add('active');
         document.body.style.overflow = 'hidden';
         try {
-          const user = auth.currentUser;
-          if (!user) throw new Error('La sesión venció; vuelve a iniciar sesión');
           const idToken = await user.getIdToken();
-          const response = await fetch(WEBHOOK_SERVER + '/api/bunny/embed-token', {
+          const response = await fetch(WEBHOOK_SERVER + '/bunny/playback', {
             method: 'POST',
-            headers: {'Authorization':'Bearer '+idToken,'Content-Type':'application/json'},
-            body: JSON.stringify({videoId:lesson.videoId})
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+            body: JSON.stringify({courseId:course.id,lessonId:lesson.contentId})
           });
-          const data = await response.json().catch(function(){return {}});
-          if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
-          body.innerHTML = `<iframe class="video-player-iframe" src="${data.embedUrl}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+          const payload = await response.json().catch(function(){ return {}; });
+          if (!response.ok || !payload.embedUrl) throw new Error(payload.error || 'No fue posible autorizar la reproducción');
+          body.innerHTML = `<iframe class="video-player-iframe" src="${payload.embedUrl}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
         } catch (error) {
-          console.error('[Bunny player]', error);
-          body.innerHTML = `<div class="video-player-no-video"><div>No se pudo abrir esta clase.<br>${String(error.message||'Intenta nuevamente').replace(/[<>&]/g,'')}</div></div>`;
+          body.innerHTML = `<div class="video-player-no-video"><div>No pudimos preparar este video.<br><small>${String(error.message||error)}</small></div></div>`;
         }
       } else if (lesson.drive) {
         const embedUrl = driveVideoEmbed(lesson.drive);
@@ -7083,6 +7201,7 @@
     }
 
     function completeCurrentLesson() {
+      if (!requireMembership('Guardar el progreso')) return;
       if (currentCourseId && window._currentPlayingLessonId) {
         markLessonComplete(currentCourseId, window._currentPlayingLessonId);
         closeVideoPlayer();
@@ -7090,6 +7209,7 @@
     }
 
     function markLessonComplete(courseId, lessonId) {
+      if (!requireMembership('Guardar el progreso')) return;
       const progressKey = 'dermalysse_progress_' + courseId;
       let completed = [];
       try { completed = JSON.parse(localStorage.getItem(progressKey)) || []; } catch(e) {}
@@ -7154,6 +7274,7 @@
     }
 
     function generatePrintCertificate() {
+      if (!requireMembership('Generar un certificado')) return;
       var course = COURSES.find(function(c) { return c.id === currentCourseId; });
       if (!course) { showToast('Selecciona un curso'); return; }
       var userName = 'Miembro del Club';
@@ -7269,6 +7390,7 @@
     }
 
     function showCertificatePopup(course) {
+      if (!requireMembership('Ver un certificado')) return;
       const existing = document.getElementById('certPopup');
       if (existing) existing.remove();
 
@@ -7324,8 +7446,8 @@
       
       list.innerHTML = WEBINARS.map((w, idx) => {
         const isReserved = reservedIds.includes(w.id || w.title);
-        const liveBtn = w.live ? '<a href="' + w.live + '" target="_blank" class="webinar-item-action" style="background:var(--azul-dark);color:white;text-decoration:none;" onclick="event.stopPropagation()">Unirme</a>' : '';
-        const recBtn = w.drive ? '<a href="' + w.drive + '" target="_blank" class="webinar-item-action" style="background:var(--bg-elevated);color:var(--text-secondary);text-decoration:none;border:1px solid var(--border);" onclick="event.stopPropagation()">Ver grabación</a>' : '';
+        const liveBtn = w.live ? '<button class="webinar-item-action" style="background:var(--azul-dark);color:white;" onclick="event.stopPropagation();openWebinarLink(' + idx + ',\'live\')">Unirme</button>' : '';
+        const recBtn = w.drive ? '<button class="webinar-item-action" style="background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border);" onclick="event.stopPropagation();openWebinarLink(' + idx + ',\'drive\')">Ver grabación</button>' : '';
         const reserveBtn = isReserved
           ? '<button class="webinar-item-action" style="background:var(--success);color:white;cursor:default;" disabled>Reservado</button>'
           : '<button class="webinar-item-action" onclick="event.stopPropagation();reserveWebinar(' + idx + ')">Reservar</button>';
@@ -7347,6 +7469,7 @@
 
     // Fix 11: Reservar webinar
     function reserveWebinar(idx) {
+      if (!requireMembership('Reservar un webinar')) return;
       const w = WEBINARS[idx];
       if (!w) return;
       const key = w.id || w.title;
@@ -7423,8 +7546,8 @@
         grid.innerHTML = emptyState('pdf', 'No hay material disponible', 'Guías, protocolos y documentos descargables aparecerán aquí cuando se agreguen.');
         return;
       }
-      grid.innerHTML = PDFS.map(p => {
-        const onclick = p.drive ? `onclick="window.open('${p.drive}','_blank')"` : `onclick="showToast('Descarga disponible próximamente')"`;
+      grid.innerHTML = PDFS.map((p, idx) => {
+        const onclick = p.drive ? `onclick="openPdfMaterial(${idx})"` : `onclick="showToast('Descarga disponible próximamente')"`;
         const coverImg = p.img ? '<img src="' + driveImageUrl(p.img) + '" style="width:100%;height:140px;object-fit:cover;display:block;" onerror="this.parentElement.style.display=\'none\'">' : '';
         const coverDiv = p.img ? '<div style="overflow:hidden;border-bottom:1px solid var(--border-soft);">' + coverImg + '</div>' : '';
         return '<div class="pdf-card" ' + onclick + ' style="flex-direction:column;align-items:stretch;padding:0;overflow:hidden;">'
@@ -7435,6 +7558,12 @@
           + '<div class="pdf-download"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>'
           + '</div></div>';
       }).join('');
+    }
+
+    function openPdfMaterial(idx) {
+      if (!requireMembership('Abrir o descargar este material')) return;
+      const material = PDFS[idx];
+      if (material && material.drive) window.open(material.drive, '_blank', 'noopener');
     }
 
     function renderNews() {
@@ -7623,11 +7752,13 @@
     }
 
     function showCreateTopicForm() {
+      if (!requireMembership('Participar en la comunidad')) return;
       document.getElementById('foroCreateForm').style.display = '';
       document.getElementById('foroNewTitle').focus();
     }
 
     async function submitForumTopic() {
+      if (!requireMembership('Publicar en la comunidad')) return;
       const title = document.getElementById('foroNewTitle').value.trim();
       const tag = document.getElementById('foroNewTag').value;
       const body = document.getElementById('foroNewBody').value.trim();
@@ -7699,6 +7830,7 @@
     }
 
     async function submitReply(topicId) {
+      if (!requireMembership('Responder en la comunidad')) return;
       const text = document.getElementById('foroReplyText').value.trim();
       if (!text) { showToast('Escribe algo'); return; }
       try {
@@ -7742,6 +7874,7 @@
 
     // ═══ LIKES (corazones) ═══
     async function toggleLikeTopic(topicId, btn) {
+      if (!requireMembership('Reaccionar en la comunidad')) return;
       try {
         const uid = auth.currentUser.uid;
         const ref = db.collection('forum').doc(topicId);
@@ -7761,6 +7894,7 @@
     }
 
     async function toggleLikeReply(topicId, replyId, btn) {
+      if (!requireMembership('Reaccionar en la comunidad')) return;
       try {
         const uid = auth.currentUser.uid;
         const ref = db.collection('forum').doc(topicId).collection('replies').doc(replyId);
@@ -7977,6 +8111,7 @@
     }
 
     function copyCoupon() {
+      if (!requireMembership('Usar el beneficio')) return;
       const code = 'CLUB20DERMA';
       if (navigator.clipboard) {
         navigator.clipboard.writeText(code).then(() => showToast('Cupón copiado'));
@@ -8126,6 +8261,7 @@
     // ─── 5. RUTA DE APRENDIZAJE ───
 
     function downloadCertFromList(userName, courseName, date, instructor, code) {
+      if (!requireMembership('Descargar un certificado')) return;
       var printWin = window.open('', '_blank');
       printWin.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Certificado - ' + courseName + '</title>');
       printWin.document.write('<style>');
@@ -8154,6 +8290,7 @@
     }
 
     function shareCert(userName, courseName, code) {
+      if (!requireMembership('Compartir un certificado')) return;
       var url = 'https://club.dermalyssemx.com/verify.html?code=' + code;
       var text = 'Certificado de ' + userName + ' - ' + courseName + '. Verificar: ' + url;
       if (navigator.share) {
@@ -8385,6 +8522,7 @@
     })();
 
     function checkCompatibility() {
+      if (!requireMembership('Calcular la compatibilidad')) return;
       const a1 = document.getElementById('activo1').value;
       const a2 = document.getElementById('activo2').value;
       const el = document.getElementById('compatResult');
@@ -8481,6 +8619,7 @@
     };
 
     function generateProtocol() {
+      if (!requireMembership('Generar un protocolo')) return;
       const condicion = document.getElementById('protoCondicion').value;
       const skin = document.getElementById('protoSkin').value;
       const sens = document.getElementById('protoSens').value;
@@ -8584,6 +8723,7 @@
     }
 
     function showAtlasPhoto(src) {
+      if (!requireMembership('Abrir el atlas visual')) return;
       const overlay = document.createElement('div');
       overlay.className = 'atlas-modal-overlay';
       overlay.innerHTML = '<img src="' + src + '">';
@@ -8602,6 +8742,7 @@
     }
 
     function generateFicha() {
+      if (!requireMembership('Generar una ficha clínica')) return;
       const nombre = document.getElementById('fichaNombre').value.trim();
       const edad = document.getElementById('fichaEdad').value.trim();
       const sexo = document.getElementById('fichaSexo').value;
@@ -8662,6 +8803,7 @@
     }
 
     function downloadFichaPDF() {
+      if (!requireMembership('Descargar la ficha clínica')) return;
       var fichaEl = document.querySelector('.ficha-preview');
       if (!fichaEl) { showToast('Primero genera una ficha'); return; }
       var clone = fichaEl.cloneNode(true);
@@ -8692,6 +8834,7 @@
     }
 
     function shareFicha() {
+      if (!requireMembership('Compartir la ficha clínica')) return;
       var fichaEl = document.querySelector('.ficha-preview h2');
       var nombre = fichaEl ? fichaEl.textContent : 'Paciente';
       var text = 'Ficha clínica de ' + nombre + ' - Club Dermalysse';
@@ -8790,18 +8933,10 @@
         if (!user) { showToast('Inicia sesión primero'); btn.disabled = false; return; }
         if (!WEBHOOK_SERVER) { showToast('Servidor no configurado'); btn.disabled = false; return; }
 
-        const res = await fetch(WEBHOOK_SERVER + '/create-checkout-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            // ← CAMBIO: el webhook ya no recibe priceId fijo, ahora arma el precio
-            // dinámicamente desde config/club en Firestore según este "plan".
-            plan: plan,
-            firebaseUid: user.uid,
-            email: user.email,
-            successUrl: window.location.origin + window.location.pathname + '?payment=success',
-            cancelUrl: window.location.origin + window.location.pathname + '?payment=canceled'
-          })
+        const res = await authenticatedPost('/create-checkout-session', {
+          plan: plan,
+          successUrl: window.location.origin + window.location.pathname + '?payment=success',
+          cancelUrl: window.location.origin + window.location.pathname + '?payment=canceled'
         });
 
         const data = await res.json();
@@ -8844,11 +8979,7 @@
       try {
         const user = auth.currentUser;
         if (!user || !WEBHOOK_SERVER) return;
-        const res = await fetch(WEBHOOK_SERVER + '/cancel-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firebaseUid: user.uid })
-        });
+        const res = await authenticatedPost('/cancel-subscription', {});
         const data = await res.json();
         if (data.success) {
           showToast('Suscripción cancelada. Acceso hasta el final del período');
@@ -8877,11 +9008,7 @@
       try {
         const user = auth.currentUser;
         if (!user || !WEBHOOK_SERVER) return;
-        const res = await fetch(WEBHOOK_SERVER + '/reactivate-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firebaseUid: user.uid })
-        });
+        const res = await authenticatedPost('/reactivate-subscription', {});
         const data = await res.json();
         if (data.success) {
           showToast('Suscripción reactivada');
@@ -8905,13 +9032,8 @@
         const user = auth.currentUser;
         if (!user || !WEBHOOK_SERVER) return;
 
-        const res = await fetch(WEBHOOK_SERVER + '/create-portal-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            firebaseUid: user.uid,
-            returnUrl: window.location.origin + window.location.pathname
-          })
+        const res = await authenticatedPost('/create-portal-session', {
+          returnUrl: window.location.origin + window.location.pathname
         });
 
         const data = await res.json();
@@ -8922,40 +9044,28 @@
 
     // ═══ MODO EXPLORADOR (lock) ═══
     function applyLocks() {
+      // El modo explorador mantiene todo el catálogo legible. Los permisos se
+      // validan únicamente cuando la persona intenta ejecutar una acción premium.
+      document.querySelectorAll('.lock-banner').forEach(el => el.remove());
+      document.querySelectorAll('.content-locked').forEach(el => el.classList.remove('content-locked'));
+
       // Banner de Modo Explorador en inicio
       const inicio = document.getElementById('view-inicio');
       if (inicio && !inicio.querySelector('.explorer-banner')) {
         const eb = document.createElement('div');
         eb.className = 'explorer-banner';
         eb.style.cssText = 'background:var(--bg-surface);border:2px solid var(--azul-main);border-radius:var(--radius-sm,12px);padding:1.25rem 1.5rem;margin-bottom:1.5rem;';
-        eb.innerHTML = '<div style="display:flex;align-items:center;gap:.75rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--azul-main)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><div><strong style="color:var(--azul-dark);">Modo Explorador</strong><br><span style="font-size:.85rem;color:var(--text-muted);">Estás navegando en modo explorador. Suscríbete para desbloquear todo el contenido del Club.</span></div></div><button class="btn-subscribe" onclick="goTo(\'suscripcion\')" style="max-width:200px;padding:.65rem 1.2rem;font-size:.88rem;margin-top:.75rem;">Ver planes</button>';
+        eb.innerHTML = '<div style="display:flex;align-items:center;gap:.75rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--azul-main)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><div><strong style="color:var(--azul-dark);">Modo Explorador</strong><br><span style="font-size:.85rem;color:var(--text-muted);">Puedes recorrer cursos y temarios y reproducir gratis el primer video de cada curso. Las acciones premium se desbloquean con membresía.</span></div></div><button class="btn-subscribe" onclick="goTo(\'suscripcion\')" style="max-width:200px;padding:.65rem 1.2rem;font-size:.88rem;margin-top:.75rem;">Ver planes</button>';
         const header = inicio.querySelector('.view-header');
         if (header) header.after(eb); else inicio.prepend(eb);
       }
+    }
 
-      // Banner de lock en TODAS las secciones de contenido
-      const lockViews = ['view-biblioteca','view-curso','view-webinar','view-pdf','view-noticias','view-foro','view-logros','view-descuento','view-canal','view-calculadora','view-protocolos','view-atlas','view-ficha','view-config','view-notif'];
-      lockViews.forEach(id => {
-        const view = document.getElementById(id);
-        if (!view) return;
-        if (view.querySelector('.lock-banner')) return;
-        const banner = document.createElement('div');
-        banner.className = 'lock-banner';
-        banner.innerHTML = '<h3>Contenido exclusivo para miembros</h3><p>Suscríbete para acceder a todos los cursos, webinars y material del Club Dermalysse.</p><button class="btn-subscribe" onclick="goTo(\'suscripcion\')">Ver planes</button>';
-        const header = view.querySelector('.view-header');
-        if (header) header.after(banner); else view.prepend(banner);
-      });
-
-      // Blur en TODO el contenido de las secciones bloqueadas
-      lockViews.forEach(id => {
-        const view = document.getElementById(id);
-        if (!view) return;
-        // Aplicar blur a todos los hijos excepto el header y el lock-banner
-        Array.from(view.children).forEach(child => {
-          if (child.classList.contains('lock-banner') || child.classList.contains('view-header')) return;
-          child.classList.add('content-locked');
-        });
-      });
+    function openWebinarLink(idx, type) {
+      if (!requireMembership(type === 'live' ? 'Entrar al webinar' : 'Abrir la grabación')) return;
+      const webinar = WEBINARS[idx];
+      const url = webinar && webinar[type];
+      if (url) window.open(url, '_blank', 'noopener');
     }
 
     function removeLocks() {
@@ -9111,6 +9221,53 @@
       }
     }
     cargarPreciosDinamicos();
+
+    // ═══ INSTALACIÓN PWA ═══
+    let _deferredInstallPrompt = null;
+
+    function isStandaloneApp() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function updateInstallButton() {
+      const btn = document.getElementById('pwaInstallBtn');
+      if (!btn) return;
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      btn.classList.toggle('visible', !isStandaloneApp() && (!!_deferredInstallPrompt || isIOS));
+    }
+
+    async function installDermalysseApp() {
+      if (_deferredInstallPrompt) {
+        _deferredInstallPrompt.prompt();
+        await _deferredInstallPrompt.userChoice.catch(function(){});
+        _deferredInstallPrompt = null;
+        updateInstallButton();
+        return;
+      }
+      if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+        showToast('En Safari toca Compartir y después “Agregar a pantalla de inicio”');
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', function(event) {
+      event.preventDefault();
+      _deferredInstallPrompt = event;
+      updateInstallButton();
+    });
+    window.addEventListener('appinstalled', function() {
+      _deferredInstallPrompt = null;
+      updateInstallButton();
+      showToast('Club Dermalysse instalado');
+    });
+    updateInstallButton();
+
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js').catch(function(error) {
+          console.warn('[Club] No se pudo registrar el modo instalable:', error.message);
+        });
+      });
+    }
 
   </script>
 
