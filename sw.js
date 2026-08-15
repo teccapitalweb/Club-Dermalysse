@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'dermalysse-shell-v4';
+const CACHE_VERSION = 'dermalysse-shell-v5';
 const APP_SHELL = [
   './',
   './index.html',

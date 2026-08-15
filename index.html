@@ -172,6 +172,33 @@
     .auth-brand-mid,
     .auth-brand-bot { position: relative; z-index: 1; }
 
+    .auth-brand-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .auth-install-btn {
+      display: none;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      padding: .6rem .85rem;
+      border: 1px solid rgba(116, 27, 52, .2);
+      border-radius: 999px;
+      background: rgba(255, 253, 251, .82);
+      color: var(--fashion-wine, #741b34);
+      font: 700 .72rem/1 var(--font-body);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 24px rgba(116, 27, 52, .1);
+      backdrop-filter: blur(12px);
+    }
+    .auth-install-btn.visible { display: inline-flex; }
+    .auth-install-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
+
     .brand-mark {
       display: inline-flex;
       align-items: center;
@@ -4726,7 +4753,7 @@
     }
 
     @media (display-mode: standalone) {
-      .pwa-install-btn { display: none !important; }
+      [data-pwa-install] { display: none !important; }
     }
 
     .app-loading{
@@ -4772,6 +4799,14 @@
       .mobile-app-nav button{min-width:0;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;color:#857379;border-radius:14px;font-family:inherit;font-size:.6rem;font-weight:700;letter-spacing:.04em}
       .mobile-app-nav button svg{width:21px;height:21px}
       .mobile-app-nav button.active{color:white;background:linear-gradient(135deg,var(--fashion-wine,#741b34),#a52a4b);box-shadow:0 9px 24px rgba(116,27,52,.22)}
+      .filter-chip,
+      .back-btn,
+      .btn-secondary,
+      .foro-back-btn,
+      .logout-btn,
+      .nav-item,
+      .section-link { min-height:44px; }
+      .section-link { display:inline-flex;align-items:center; }
     }
   </style>
 
@@ -4815,6 +4850,10 @@
           <span class="brand-mark-dot"><img src="img/logo-dermalysse.png" alt="Dermalysse"></span>
           DERMALYSSE
         </div>
+        <button class="auth-install-btn" data-pwa-install type="button" onclick="installDermalysseApp()" aria-label="Instalar Club Dermalysse en este dispositivo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2"/></svg>
+          <span>Instalar</span>
+        </button>
       </div>
 
       <div class="auth-brand-mid">
@@ -5122,7 +5161,7 @@
         </button>
         <div style="flex:1;"></div>
         <div class="topbar-actions">
-          <button class="pwa-install-btn" id="pwaInstallBtn" type="button" aria-label="Instalar Club Dermalysse" onclick="installDermalysseApp()">
+          <button class="pwa-install-btn" id="pwaInstallBtn" data-pwa-install type="button" aria-label="Instalar Club Dermalysse" onclick="installDermalysseApp()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2"/></svg>
             <span>Instalar app</span>
           </button>
@@ -9398,11 +9437,17 @@
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
+    function isIOSDevice() {
+      return /iphone|ipad|ipod/i.test(navigator.userAgent)
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
     function updateInstallButton() {
-      const btn = document.getElementById('pwaInstallBtn');
-      if (!btn) return;
-      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      btn.classList.toggle('visible', !isStandaloneApp() && (!!_deferredInstallPrompt || isIOS));
+      const isIOS = isIOSDevice();
+      const canInstall = !isStandaloneApp() && (!!_deferredInstallPrompt || isIOS);
+      document.querySelectorAll('[data-pwa-install]').forEach(function(btn) {
+        btn.classList.toggle('visible', canInstall);
+      });
     }
 
     async function installDermalysseApp() {
@@ -9413,8 +9458,8 @@
         updateInstallButton();
         return;
       }
-      if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-        showToast('En Safari toca Compartir y después “Agregar a pantalla de inicio”');
+      if (isIOSDevice()) {
+        showToast('Toca Compartir y después “Agregar a pantalla de inicio”');
       }
     }
 
