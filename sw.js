@@ -1,13 +1,15 @@
-const CACHE_VERSION = 'dermalysse-shell-v2';
+const CACHE_VERSION = 'dermalysse-shell-v4';
 const APP_SHELL = [
   './',
   './index.html',
   './access-policy.js',
   './manifest.webmanifest',
   './data/dermalysse-courses.js',
+  './data/dermalysse-course-guides.js',
   './img/logo.png',
   './img/logo-dermalysse.png',
-  './img/fashion/fashion-hero.png',
+  './img/fashion/fashion-login-bg-v2.png',
+  './img/fashion/fashion-login-model-v2.png',
   './img/icons/icon-192.png',
   './img/icons/icon-512.png',
   './img/icons/maskable-512.png',

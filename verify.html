@@ -147,50 +147,42 @@
 <body>
   <div class="card" id="verifyCard"></div>
   <script>
-    (function() {
+    (async function() {
       var card = document.getElementById('verifyCard');
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>'"]/g, function(char) {
+          return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char];
+        });
+      }
+      function renderError() {
+        card.innerHTML = ''
+          + '<div class="card-header"><h1>CLUB DERMALYSSE</h1><div class="logo-text">Sistema de Verificación de Certificados</div></div>'
+          + '<div class="card-body"><div class="error-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>'
+          + '<div class="status error">Certificado No Encontrado</div><div class="status-sub">No existe un registro oficial vigente para este folio.</div></div>'
+          + '<div class="card-footer"><p>Si crees que es un error, contacta a<br><a href="https://club.dermalyssemx.com/">Club Dermalysse</a></p></div>';
+      }
       try {
-        var params = new URLSearchParams(window.location.search);
-        var encoded = params.get('d');
-        if (!encoded) throw new Error('No data');
-        var json = decodeURIComponent(escape(atob(encoded)));
-        var data = JSON.parse(json);
-        if (!data.n || !data.c || !data.f) throw new Error('Invalid data');
-
+        var code = String(new URLSearchParams(window.location.search).get('code') || '').toUpperCase();
+        if (!/^DRML-\d{4}-[0-9A-F]{12}$/.test(code)) throw new Error('Invalid code');
+        card.innerHTML = '<div class="card-body"><div class="status-sub">Consultando el registro oficial…</div></div>';
+        var response = await fetch('https://dermalysse-webhook-production.up.railway.app/certificates/' + encodeURIComponent(code), {headers:{'Accept':'application/json'}});
+        var data = await response.json().catch(function(){ return {}; });
+        if (!response.ok || data.status !== 'valid') throw new Error('Not found');
+        var issued = new Date(data.issuedAt).toLocaleDateString('es-MX', {year:'numeric',month:'long',day:'numeric'});
         card.innerHTML = ''
-          + '<div class="card-header">'
-          + '<h1>CLUB DERMALYSSE</h1>'
-          + '<div class="logo-text">Sistema de Verificación de Certificados</div>'
-          + '</div>'
-          + '<div class="card-body">'
-          + '<div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
-          + '<div class="status">Certificado Verificado</div>'
-          + '<div class="status-sub">Este certificado es auténtico y fue emitido oficialmente</div>'
+          + '<div class="card-header"><h1>CLUB DERMALYSSE</h1><div class="logo-text">Sistema de Verificación de Certificados</div></div>'
+          + '<div class="card-body"><div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+          + '<div class="status">Certificado Verificado</div><div class="status-sub">Este certificado coincide con el registro oficial de Dermalysse.</div>'
           + '<div class="info-grid">'
-          + '<div class="info-row"><div class="info-label">Otorgado a</div><div class="info-value name">' + data.n + '</div></div>'
-          + '<div class="info-row"><div class="info-label">Programa académico</div><div class="info-value">' + data.c + '</div></div>'
-          + '<div class="info-row"><div class="info-label">Carga académica</div><div class="info-value">' + data.s + ' sesiones · ' + data.a + '</div></div>'
-          + '<div class="info-row"><div class="info-label">Fecha de emisión</div><div class="info-value">' + data.d + '</div></div>'
-          + '<div class="info-row"><div class="info-label">Folio</div><div class="info-value">' + data.f + '</div></div>'
-          + '</div>'
-          + '</div>'
-          + '<div class="card-footer">'
-          + '<p>Certificado emitido digitalmente por<br><a href="#">Club Dermalysse</a> · <a href="#">IPCI Latinoamericano</a></p>'
-          + '</div>';
-      } catch(e) {
-        card.innerHTML = ''
-          + '<div class="card-header">'
-          + '<h1>CLUB DERMALYSSE</h1>'
-          + '<div class="logo-text">Sistema de Verificación de Certificados</div>'
-          + '</div>'
-          + '<div class="card-body">'
-          + '<div class="error-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>'
-          + '<div class="status error">Certificado No Encontrado</div>'
-          + '<div class="status-sub">No se pudo verificar este certificado. El enlace puede ser inválido o estar dañado.</div>'
-          + '</div>'
-          + '<div class="card-footer">'
-          + '<p>Si crees que es un error, contacta a<br><a href="#">Club Dermalysse</a></p>'
-          + '</div>';
+          + '<div class="info-row"><div class="info-label">Otorgado a</div><div class="info-value name">' + escapeHtml(data.userName) + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Programa académico</div><div class="info-value">' + escapeHtml(data.courseName) + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Carga académica</div><div class="info-value">' + escapeHtml(data.lessonCount) + ' clases · ' + escapeHtml(data.category) + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Fecha de emisión</div><div class="info-value">' + escapeHtml(issued) + '</div></div>'
+          + '<div class="info-row"><div class="info-label">Folio</div><div class="info-value">' + escapeHtml(data.code) + '</div></div>'
+          + '</div></div>'
+          + '<div class="card-footer"><p>Certificado emitido digitalmente por<br><a href="https://club.dermalyssemx.com/">Club Dermalysse</a> · IPCI Latinoamericano</p></div>';
+      } catch(error) {
+        renderError();
       }
     })();
   </script>
