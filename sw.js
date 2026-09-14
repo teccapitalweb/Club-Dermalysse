@@ -1,8 +1,11 @@
-const CACHE_VERSION = 'dermalysse-shell-v9';
+const CACHE_VERSION = 'dermalysse-shell-v10-initial-course';
 const APP_SHELL = [
   './',
   './index.html',
   './access-policy.js',
+  './initial-course-policy.js',
+  './membership-tour.js',
+  './membership-tour.css',
   './manifest.webmanifest',
   './data/dermalysse-courses.js',
   './data/dermalysse-course-guides.js',

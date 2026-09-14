@@ -57,8 +57,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "dd16f07a-1654-4c09-b98d-ba4dfc428a5b",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "initial_course_except_final",
+    "previewNote": "Disfruta tu curso inicial gratis hasta la penúltima clase. La última clase requiere membresía."
   },
   {
     "id": "course-rejuvenecimiento-facial-eficaz-domina-el-electrolifting-con-plasma-pen",
@@ -84,7 +84,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "bfa74672-7e1d-4d02-bb50-9dc437d841f7",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Rejuvenecimiento Facial Eficaz - Domina el Electrolifting con Plasma Pen - Sesión 01.mp4",
@@ -154,8 +154,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "4cfc65fb-d1bc-43ce-bf4b-1c1ae34900ac",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-tecnicas-avanzadas-en-rejuvenecimiento-facial-botox-y-rellenos-dermicos",
@@ -181,7 +181,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "224422b4-9dc6-4f35-bba3-8ad82bdb8bff",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Técnicas Avanzadas en Rejuvenecimiento Facial - Botox y Rellenos Dérmicos - Sesión 01.mp4",
@@ -251,8 +251,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "40cedcce-3167-4cc3-bbeb-7e247f37c87c",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-tratamientos-faciales-anti-envejecimiento",
@@ -278,7 +278,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "b1224b14-dafb-4c6f-9848-d07cd8f45450",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Tratamientos Faciales Anti-envejecimiento - Sesión 01.mp4",
@@ -329,8 +329,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "8c9cdf6a-db86-4d02-960f-43df2d4fb368",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-microdermoabrasion-y-dermaplaning-tecnicas-de-exfoliacion-avanzada",
@@ -356,7 +356,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "48558932-0c31-4c14-b057-b151ad8f3dd8",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Microdermoabrasión y Dermaplaning - Técnicas de Exfoliación Avanzada - Sesión 01.mp4",
@@ -445,8 +445,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "ae6b99ac-eebb-44a7-9d12-2c3e5ab1829b",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-formulacion-de-cosmetica-natural",
@@ -473,7 +473,7 @@ window.DERMALYSSE_COURSES = [
           2
         ],
         "videoId": "b1d68d83-6482-4af3-b0e5-0ed31d60ddd5",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": true,
         "previewUnavailable": false,
         "assetName": "Formulación de Cosmética Natural - Sesiones 01 y 02.mp4",
@@ -507,8 +507,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "5b72e3de-c814-4c9b-a8f3-279553caefc2",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "El primer video integra las sesiones 01 y 02 y se ofrece completo como vista previa gratuita."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-regulacion-cosmetica",
@@ -535,7 +535,7 @@ window.DERMALYSSE_COURSES = [
           2
         ],
         "videoId": "209b227f-f986-42a9-a59b-7f90e0e1357b",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": true,
         "previewUnavailable": false,
         "assetName": "Regulación Cosmética - Sesiones 01 y 02.mp4",
@@ -587,8 +587,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "39120e40-06a8-467f-9e71-d23acbaf9efc",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "El primer video integra las sesiones 01 y 02 y se ofrece completo como vista previa gratuita."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-estetica-corporal-tecnicas-de-contorno-y-remodelacion",
@@ -614,7 +614,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "6cd97b3d-2fbf-4544-a0b7-31c72c73eb6a",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Estética Corporal - Técnicas de Contorno y Remodelación - Sesión 01.mp4",
@@ -703,8 +703,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "d896b5cb-3893-4360-8248-36532dd33675",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-nutricion-clinica-para-enfermedades-cronicas",
@@ -730,7 +730,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "429d4726-4512-465a-accb-28e37ca2b235",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Nutrición Clínica para Enfermedades Crónicas - Sesión 01.mp4",
@@ -819,8 +819,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "e5b11b77-281a-4ec1-a746-955849e5e9d2",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-nutricion-y-entrenamiento-para-estetica-corporal",
@@ -846,7 +846,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "2efde757-eccb-49d0-abdd-d3cd881bb5d7",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Nutrición y Entrenamiento para Estética Corporal - Sesión 01.mp4",
@@ -935,8 +935,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "a24d53a5-cea5-4bb2-b69d-c31f230601cb",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-nutricion-para-la-prevencion-del-sobrepeso-y-la-obesidad",
@@ -962,7 +962,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "f76dbd85-6f48-4c0f-a884-3c26c6ebef86",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Nutrición para la Prevención del Sobrepeso y la Obesidad - Sesión 01.mp4",
@@ -1013,8 +1013,8 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "3e791c52-3d5d-42e3-99fd-24381dacb5e9",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   },
   {
     "id": "course-biohacking-para-la-salud-nutricion-y-metabolismo",
@@ -1040,7 +1040,7 @@ window.DERMALYSSE_COURSES = [
           1
         ],
         "videoId": "0e19122c-2efa-47be-8d3f-e092b54d5efa",
-        "isPreview": true,
+        "isPreview": false,
         "isCombinedSessionFile": false,
         "previewUnavailable": false,
         "assetName": "Biohacking para la Salud - Nutrición y Metabolismo - Sesión 01.mp4",
@@ -1110,7 +1110,7 @@ window.DERMALYSSE_COURSES = [
     "unlockDate": "",
     "videoProvider": "bunny",
     "bunnyCollectionId": "5efef855-1d5b-49f3-bfae-e282d2c70e79",
-    "previewPolicy": "first_video_asset",
-    "previewNote": "La sesión 01 puede reproducirse como vista previa gratuita para usuarios registrados."
+    "previewPolicy": "membership_only",
+    "previewNote": "Este curso requiere una membresía vigente."
   }
 ];
